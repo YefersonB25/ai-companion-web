@@ -87,6 +87,9 @@ export default function RegisterPage() {
                 Inicia sesión
               </Link>
             </p>
+            <Link href="/download" className="text-xs text-muted-foreground hover:text-foreground underline text-center">
+              Descargar app para Android
+            </Link>
           </CardFooter>
         </form>
       </Card>
