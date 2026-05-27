@@ -10,13 +10,14 @@ import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import {
-  MessageSquare, Plus, Brain, Settings, Cpu, LogOut, User
+  MessageSquare, Plus, Brain, Settings, Cpu, LogOut, User, Smartphone
 } from 'lucide-react'
 
 const navItems = [
-  { href: '/memory',    icon: Brain,          label: 'Mapa Mental' },
-  { href: '/providers', icon: Cpu,            label: 'Proveedores IA' },
-  { href: '/settings',  icon: Settings,       label: 'Configuración' },
+  { href: '/memory',    icon: Brain,       label: 'Mapa Mental' },
+  { href: '/providers', icon: Cpu,         label: 'Proveedores IA' },
+  { href: '/settings',  icon: Settings,    label: 'Configuración' },
+  { href: '/download',  icon: Smartphone,  label: 'App Android' },
 ]
 
 export default function ChatSidebar() {
