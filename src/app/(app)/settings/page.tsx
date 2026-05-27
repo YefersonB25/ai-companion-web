@@ -1,0 +1,144 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import api from '@/lib/api'
+import { UserSetting } from '@/types'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
+
+export default function SettingsPage() {
+  const [settings, setSettings] = useState<Partial<UserSetting>>({})
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  useEffect(() => {
+    api.get('/settings').then(({ data }) => setSettings(data ?? {}))
+  }, [])
+
+  const update = (key: keyof UserSetting, value: unknown) =>
+    setSettings((s) => ({ ...s, [key]: value }))
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSaving(true)
+    await api.put('/settings', settings)
+    setSaving(false)
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2500)
+  }
+
+  return (
+    <div className="flex flex-1 flex-col overflow-auto p-6">
+      <div className="mx-auto w-full max-w-2xl space-y-6">
+        <div>
+          <h1 className="text-xl font-semibold">Configuración</h1>
+          <p className="text-sm text-muted-foreground">Personaliza tu asistente de IA</p>
+        </div>
+
+        <form onSubmit={handleSave} className="space-y-6">
+          {/* General */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">General</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium">Idioma</label>
+                  <select
+                    className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+                    value={settings.language ?? 'es'}
+                    onChange={(e) => update('language', e.target.value)}
+                  >
+                    <option value="es">Español</option>
+                    <option value="en">English</option>
+                    <option value="pt">Português</option>
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium">Zona horaria</label>
+                  <Input
+                    value={settings.timezone ?? 'America/Bogota'}
+                    onChange={(e) => update('timezone', e.target.value)}
+                    placeholder="America/Bogota"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Comportamiento */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Comportamiento</CardTitle>
+              <CardDescription>Configura cómo responde tu asistente</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {[
+                { key: 'memory_enabled', label: 'Memoria activada', desc: 'El asistente recuerda información sobre ti entre conversaciones' },
+                { key: 'auto_title', label: 'Títulos automáticos', desc: 'Genera títulos automáticamente para nuevas conversaciones' },
+                { key: 'stream_responses', label: 'Respuestas en tiempo real', desc: 'Muestra la respuesta mientras se genera (streaming)' },
+              ].map(({ key, label, desc }) => (
+                <div key={key} className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium">{label}</p>
+                    <p className="text-xs text-muted-foreground">{desc}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => update(key as keyof UserSetting, !settings[key as keyof UserSetting])}
+                    className={`relative h-5 w-9 rounded-full transition-colors ${
+                      settings[key as keyof UserSetting] ? 'bg-primary' : 'bg-muted-foreground/30'
+                    }`}
+                  >
+                    <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
+                      settings[key as keyof UserSetting] ? 'left-4.5' : 'left-0.5'
+                    }`} />
+                  </button>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          {/* Persona */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Persona del asistente</CardTitle>
+              <CardDescription>Define cómo se comporta y comunica tu asistente</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium">Nombre</label>
+                <Input
+                  value={(settings.persona as { name?: string })?.name ?? ''}
+                  onChange={(e) => update('persona', { ...(settings.persona as object ?? {}), name: e.target.value })}
+                  placeholder="Ej: Aria, Max, Luna..."
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium">Prompt del sistema</label>
+                <textarea
+                  className="w-full rounded-md border bg-background px-3 py-2 text-sm min-h-[100px] resize-y"
+                  value={(settings.persona as { prompt?: string })?.prompt ?? ''}
+                  onChange={(e) => update('persona', { ...(settings.persona as object ?? {}), prompt: e.target.value })}
+                  placeholder="Eres un asistente personal experto en tecnología y logística..."
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Separator />
+
+          <div className="flex items-center gap-3">
+            <Button type="submit" disabled={saving}>
+              {saving ? 'Guardando...' : 'Guardar cambios'}
+            </Button>
+            {saved && <span className="text-sm text-green-600 font-medium">Guardado</span>}
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
