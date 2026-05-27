@@ -7,7 +7,7 @@ echo "==> Pulling latest code..."
 git -C "$DEPLOY_DIR" pull origin main
 
 echo "==> Installing Node dependencies..."
-npm ci --prefix "$DEPLOY_DIR"
+npm install --prefix "$DEPLOY_DIR"
 
 echo "==> Building..."
 npm run build --prefix "$DEPLOY_DIR"
