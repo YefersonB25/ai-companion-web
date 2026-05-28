@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 
 const navItems = [
+  { href: '/profile',   icon: User,        label: 'Mi Perfil' },
   { href: '/memory',    icon: Brain,       label: 'Mapa Mental' },
   { href: '/providers', icon: Cpu,         label: 'Proveedores IA' },
   { href: '/settings',  icon: Settings,    label: 'Configuración' },
