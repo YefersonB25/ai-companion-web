@@ -102,6 +102,54 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
+          {/* Briefing diario */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Briefing diario</CardTitle>
+              <CardDescription>Tu asistente te envía cada mañana un resumen personalizado con clima, recordatorios y más</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium">Activar briefing matutino</p>
+                  <p className="text-xs text-muted-foreground">Recibe tu resumen personalizado cada mañana</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => update('briefing_enabled', !settings.briefing_enabled)}
+                  className={`relative h-5 w-9 rounded-full transition-colors ${
+                    settings.briefing_enabled ? 'bg-primary' : 'bg-muted-foreground/30'
+                  }`}
+                >
+                  <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
+                    settings.briefing_enabled ? 'left-4.5' : 'left-0.5'
+                  }`} />
+                </button>
+              </div>
+
+              {settings.briefing_enabled && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium">Hora de envío</label>
+                    <Input
+                      type="time"
+                      value={settings.briefing_time ?? '08:00'}
+                      onChange={(e) => update('briefing_time', e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium">Ciudad para el clima</label>
+                    <Input
+                      value={settings.briefing_city ?? ''}
+                      onChange={(e) => update('briefing_city', e.target.value)}
+                      placeholder="Ej: Bogotá, Madrid, Miami..."
+                    />
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Persona */}
           <Card>
             <CardHeader>

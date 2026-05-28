@@ -17,6 +17,9 @@ export interface UserSetting {
   stream_responses: boolean
   routing_rules: RoutingRule[] | null
   persona: Persona | null
+  briefing_enabled: boolean
+  briefing_time: string
+  briefing_city: string | null
 }
 
 export interface RoutingRule {
