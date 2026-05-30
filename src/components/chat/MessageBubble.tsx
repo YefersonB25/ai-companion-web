@@ -2,6 +2,8 @@ import { Message } from '@/types'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { User, Sparkles, AlertTriangle } from 'lucide-react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 interface Props {
   message: Message
@@ -78,7 +80,15 @@ export default function MessageBubble({ message, isStreaming }: Props) {
               : 'bg-muted/60 border border-border/40 rounded-tl-sm'
         )}>
           {message.content
-            ? renderContent(message.content)
+            ? isUser
+              ? <p className="whitespace-pre-wrap">{message.content}</p>
+              : (
+                <div className="prose prose-sm dark:prose-invert max-w-none prose-pre:bg-muted prose-pre:text-sm prose-code:text-indigo-600 dark:prose-code:text-indigo-400 prose-p:my-1 prose-headings:my-2">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {message.content}
+                  </ReactMarkdown>
+                </div>
+              )
             : isStreaming && (
               <span className="inline-flex items-center gap-1.5 text-muted-foreground">
                 <span className="size-1.5 animate-pulse rounded-full bg-current" />

@@ -47,6 +47,7 @@ export default function AdminMemoryPage() {
   const { user } = useAuthStore()
   const router = useRouter()
   const [data, setData] = useState<GlobalMemoryData | null>(null)
+  const [users, setUsers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -54,10 +55,10 @@ export default function AdminMemoryPage() {
   }, [user, router])
 
   useEffect(() => {
-    adminApi.globalMemory()
-      .then(({ data }) => setData(data))
-      .catch(console.error)
-      .finally(() => setLoading(false))
+    Promise.all([
+      adminApi.globalMemory().then(({ data }) => setData(data)),
+      adminApi.users().then(({ data }) => setUsers(data)),
+    ]).catch(console.error).finally(() => setLoading(false))
   }, [])
 
   if (loading) {
@@ -221,7 +222,10 @@ export default function AdminMemoryPage() {
       {/* Users ranked by brain size */}
       <div className="rounded-xl border bg-card overflow-hidden">
         <div className="px-5 py-4 border-b flex items-center justify-between">
-          <h2 className="text-sm font-semibold">Usuarios por tamaño de cerebro</h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-sm font-semibold">Usuarios por tamaño de cerebro</h2>
+            <span className="text-xs text-muted-foreground">{users.length} usuarios</span>
+          </div>
           <Link href="/admin/users" className="text-xs text-indigo-500 hover:underline">Ver todos los usuarios →</Link>
         </div>
         <div className="overflow-x-auto">
@@ -236,12 +240,10 @@ export default function AdminMemoryPage() {
               </tr>
             </thead>
             <tbody>
-              {true && (
-                <tr>
-                  <td colSpan={5} className="text-center py-10 text-muted-foreground text-xs">Sin usuarios</td>
-                </tr>
+              {users.length === 0 && (
+                <tr><td colSpan={5} className="px-5 py-8 text-center text-muted-foreground text-sm">Sin usuarios registrados</td></tr>
               )}
-              {([] as any[]).map((u: any, i: number) => (
+              {users.sort((a, b) => b.memory_nodes_count - a.memory_nodes_count).map((u, i) => (
                 <tr key={u.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
                   <td className="px-5 py-3 text-muted-foreground text-xs font-mono">{i + 1}</td>
                   <td className="px-4 py-3">
@@ -251,7 +253,7 @@ export default function AdminMemoryPage() {
                     </div>
                   </td>
                   <td className="px-4 py-3 text-right font-mono text-xs font-semibold text-indigo-600 dark:text-indigo-400">
-                    {u.memory_nodes}
+                    {u.memory_nodes_count}
                   </td>
                   <td className="px-4 py-3">
                     <BrainScore score={u.brain_score} size="sm" />
