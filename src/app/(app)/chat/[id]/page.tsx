@@ -6,7 +6,6 @@ import { useChatStore } from '@/store/chat'
 import { useRealtimeChat } from '@/hooks/useRealtimeChat'
 import MessageBubble from '@/components/chat/MessageBubble'
 import ChatInput from '@/components/chat/ChatInput'
-import { ScrollArea } from '@/components/ui/scroll-area'
 
 export default function ConversationPage() {
   const params = useParams()
@@ -26,7 +25,7 @@ export default function ConversationPage() {
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
-      <ScrollArea className="flex-1">
+      <div className="flex-1 min-h-0 overflow-y-auto">
         <div className="mx-auto w-full max-w-3xl px-2 py-6">
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center gap-3 py-24 text-center">
@@ -47,7 +46,7 @@ export default function ConversationPage() {
           ))}
           <div ref={bottomRef} />
         </div>
-      </ScrollArea>
+      </div>
 
       <ChatInput
         onSend={sendMessage}
