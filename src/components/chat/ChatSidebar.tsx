@@ -56,7 +56,7 @@ export default function ChatSidebar() {
       </div>
 
       {/* Conversation list */}
-      <ScrollArea className="flex-1 px-2">
+      <ScrollArea className="flex-1 min-h-0 overflow-y-auto px-2">
         <div className="space-y-1 py-1">
           {conversations.length === 0 && (
             <p className="px-3 py-4 text-xs text-muted-foreground text-center">
