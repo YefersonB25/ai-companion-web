@@ -42,6 +42,7 @@ export default function ProvidersPage() {
       await api.post('/providers', form)
       setShowForm(false)
       setForm({ provider: 'claude', model: 'claude-sonnet-4-6', api_key: '' })
+      setForm(prev => ({ ...prev, api_key: '' }))
       await load()
     } catch (err: unknown) {
       setError((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Error al guardar')
@@ -121,6 +122,7 @@ export default function ProvidersPage() {
                   <label className="text-sm font-medium">API Key</label>
                   <Input
                     type="password"
+                    autoComplete="new-password"
                     placeholder="sk-... o similar"
                     value={form.api_key}
                     onChange={(e) => setForm({ ...form, api_key: e.target.value })}

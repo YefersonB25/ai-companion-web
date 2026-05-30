@@ -9,6 +9,7 @@ import {
   XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend,
 } from 'recharts'
 import StatCard from '@/components/admin/StatCard'
+import { StatCardSkeleton, ChartSkeleton } from '@/components/admin/AdminSkeleton'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Sparkles, X, RefreshCw } from 'lucide-react'
@@ -75,9 +76,16 @@ export default function AdminDashboardPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-1 items-center justify-center text-muted-foreground text-sm">
-        <RefreshCw className="h-4 w-4 animate-spin mr-2" />
-        Cargando dashboard...
+      <div className="flex flex-col gap-6 p-6 max-w-7xl w-full mx-auto">
+        <div className="h-8 w-48 rounded bg-muted animate-pulse" />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => <StatCardSkeleton key={i} />)}
+        </div>
+        <ChartSkeleton height={260} />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <ChartSkeleton height={200} />
+          <ChartSkeleton height={200} />
+        </div>
       </div>
     )
   }

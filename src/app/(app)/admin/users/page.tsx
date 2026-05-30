@@ -6,9 +6,10 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { adminApi } from '@/lib/adminApi'
 import BrainScore from '@/components/admin/BrainScore'
+import { TableSkeleton } from '@/components/admin/AdminSkeleton'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { RefreshCw, ChevronRight } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 
 interface AdminUser {
   id: number
@@ -56,9 +57,9 @@ export default function AdminUsersPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-1 items-center justify-center text-muted-foreground text-sm">
-        <RefreshCw className="h-4 w-4 animate-spin mr-2" />
-        Cargando usuarios...
+      <div className="flex flex-col gap-6 p-6 max-w-7xl w-full mx-auto">
+        <div className="h-8 w-32 rounded bg-muted animate-pulse" />
+        <TableSkeleton rows={6} />
       </div>
     )
   }
