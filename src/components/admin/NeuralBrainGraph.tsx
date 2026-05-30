@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useCallback } from 'react'
+import { useEffect, useRef, useCallback, useState } from 'react'
 
 interface MemoryNode {
   id: number
@@ -44,10 +44,14 @@ interface PhysicsNode extends MemoryNode {
 }
 
 export default function NeuralBrainGraph({ nodes, width = 800, height = 500 }: Props) {
+  const containerRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const physicsRef = useRef<PhysicsNode[]>([])
   const animFrameRef = useRef<number>(0)
   const pulseRef = useRef(0)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => { setMounted(true) }, [])
 
   const color = useCallback((type: string) => TYPE_COLORS[type] ?? TYPE_COLORS.default, [])
 
@@ -238,9 +242,11 @@ export default function NeuralBrainGraph({ nodes, width = 800, height = 500 }: P
     return () => cancelAnimationFrame(animFrameRef.current)
   }, [nodes, width, height, color])
 
+  if (!mounted) return <div className="rounded-xl bg-slate-950 animate-pulse" style={{ width: '100%', height }} />
+
   if (!nodes.length) {
     return (
-      <div className="flex items-center justify-center rounded-xl border border-indigo-500/20 bg-slate-950" style={{ width, height }}>
+      <div className="flex items-center justify-center rounded-xl border border-indigo-500/20 bg-slate-950" style={{ width: '100%', height }}>
         <div className="text-center">
           <div className="text-4xl mb-2">🧠</div>
           <p className="text-slate-400 text-sm">Sin memorias aún — el cerebro está vacío</p>
@@ -250,8 +256,8 @@ export default function NeuralBrainGraph({ nodes, width = 800, height = 500 }: P
   }
 
   return (
-    <div className="relative rounded-xl overflow-hidden border border-indigo-500/20" style={{ width, height, background: '#020817' }}>
-      <canvas ref={canvasRef} width={width} height={height} className="block" />
+    <div ref={containerRef} className="relative rounded-xl overflow-hidden border border-indigo-500/20 w-full" style={{ height, background: '#020817' }}>
+      <canvas ref={canvasRef} width={width} height={height} className="block w-full" style={{ height }} />
 
       {/* Legend */}
       <div className="absolute top-3 right-3 flex flex-col gap-1.5 bg-slate-900/80 backdrop-blur rounded-lg px-3 py-2 border border-slate-700/50">

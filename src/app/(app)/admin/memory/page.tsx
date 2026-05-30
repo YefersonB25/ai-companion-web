@@ -7,7 +7,8 @@ import Link from 'next/link'
 import { adminApi } from '@/lib/adminApi'
 import StatCard from '@/components/admin/StatCard'
 import BrainScore from '@/components/admin/BrainScore'
-import NeuralBrainGraph from '@/components/admin/NeuralBrainGraph'
+import dynamic from 'next/dynamic'
+const NeuralBrainGraph = dynamic(() => import('@/components/admin/NeuralBrainGraph'), { ssr: false, loading: () => <div className="h-[480px] bg-slate-950 animate-pulse rounded-b-xl" /> })
 import {
   AreaChart, Area, BarChart, Bar,
   XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,

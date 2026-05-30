@@ -36,7 +36,7 @@ export default function ChatSidebar() {
   }
 
   return (
-    <div className="flex h-full w-64 flex-col border-r bg-muted/30">
+    <div className="flex h-screen w-64 min-w-[256px] max-w-[256px] flex-col border-r bg-muted/30 overflow-hidden">
       {/* Header */}
       <div className="flex items-center gap-2 p-4">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-sm">

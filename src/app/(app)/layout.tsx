@@ -16,9 +16,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   if (!token && !user) return null
 
   return (
-    <div className="flex h-full">
+    <div className="flex h-screen overflow-hidden">
       <ChatSidebar />
-      <main className="flex flex-1 flex-col overflow-hidden">
+      <main className="flex flex-1 flex-col overflow-hidden min-w-0">
         {children}
       </main>
     </div>
