@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
-import { Sparkles, GraduationCap, Target, Palette, Truck } from 'lucide-react'
+import { Sparkles, GraduationCap, Target, Palette, Truck, Settings2, Brain, Clock, Bot, CheckCircle2 } from 'lucide-react'
 
 const PERSONA_TEMPLATES = [
   {
@@ -90,6 +90,29 @@ Sé práctico y operativo. Cuando dudes de un dato (precio combustible, tarifa, 
   },
 ]
 
+interface ToggleProps {
+  checked: boolean
+  onChange: () => void
+  disabled?: boolean
+}
+
+function Toggle({ checked, onChange, disabled }: ToggleProps) {
+  return (
+    <button
+      type="button"
+      onClick={onChange}
+      disabled={disabled}
+      className={`relative h-6 w-11 rounded-full transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:opacity-40 ${
+        checked ? 'bg-indigo-600' : 'bg-muted-foreground/25'
+      }`}
+    >
+      <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow transition-transform duration-200 ${
+        checked ? 'translate-x-6' : 'translate-x-1'
+      }`} />
+    </button>
+  )
+}
+
 export default function SettingsPage() {
   const [settings, setSettings] = useState<Partial<UserSetting>>({})
   const [saving, setSaving] = useState(false)
@@ -112,202 +135,251 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col overflow-auto p-6">
-      <div className="mx-auto w-full max-w-2xl space-y-6">
-        <div>
-          <h1 className="text-xl font-semibold">Configuración</h1>
-          <p className="text-sm text-muted-foreground">Personaliza tu asistente de IA</p>
+    <div className="flex flex-1 flex-col overflow-auto">
+      {/* Page header */}
+      <div className="border-b border-border/60 bg-background/80 backdrop-blur-sm px-6 py-5 sticky top-0 z-10">
+        <div className="mx-auto w-full max-w-2xl flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500/10 border border-indigo-500/20">
+            <Settings2 className="h-4 w-4 text-indigo-500" />
+          </div>
+          <div>
+            <h1 className="text-lg font-semibold leading-tight">Configuración</h1>
+            <p className="text-xs text-muted-foreground">Personaliza tu asistente de IA</p>
+          </div>
         </div>
+      </div>
 
-        <form onSubmit={handleSave} className="space-y-6">
-          {/* General */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">General</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium">Idioma</label>
-                  <select
-                    className="w-full rounded-md border bg-background px-3 py-2 text-sm"
-                    value={settings.language ?? 'es'}
-                    onChange={(e) => update('language', e.target.value)}
-                  >
-                    <option value="es">Español</option>
-                    <option value="en">English</option>
-                    <option value="pt">Português</option>
-                  </select>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium">Zona horaria</label>
-                  <Input
-                    value={settings.timezone ?? 'America/Bogota'}
-                    onChange={(e) => update('timezone', e.target.value)}
-                    placeholder="America/Bogota"
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+      <div className="px-6 py-6">
+        <div className="mx-auto w-full max-w-2xl space-y-5">
+          <form onSubmit={handleSave} className="space-y-5">
 
-          {/* Comportamiento */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Comportamiento</CardTitle>
-              <CardDescription>Configura cómo responde tu asistente</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {[
-                { key: 'memory_enabled', label: 'Memoria activada', desc: 'El asistente recuerda información sobre ti entre conversaciones' },
-                { key: 'auto_title', label: 'Títulos automáticos', desc: 'Genera títulos automáticamente para nuevas conversaciones' },
-                { key: 'stream_responses', label: 'Respuestas en tiempo real', desc: 'Muestra la respuesta mientras se genera (streaming)' },
-              ].map(({ key, label, desc }) => (
-                <div key={key} className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium">{label}</p>
-                    <p className="text-xs text-muted-foreground">{desc}</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => update(key as keyof UserSetting, !settings[key as keyof UserSetting])}
-                    className={`relative h-5 w-9 rounded-full transition-colors ${
-                      settings[key as keyof UserSetting] ? 'bg-primary' : 'bg-muted-foreground/30'
-                    }`}
-                  >
-                    <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
-                      settings[key as keyof UserSetting] ? 'left-4.5' : 'left-0.5'
-                    }`} />
-                  </button>
+            {/* General */}
+            <Card className="border-border/60 shadow-sm">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <Settings2 className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-semibold">General</CardTitle>
                 </div>
-              ))}
-            </CardContent>
-          </Card>
-
-          {/* Briefing diario */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Briefing diario</CardTitle>
-              <CardDescription>Tu asistente te envía cada mañana un resumen personalizado con clima, recordatorios y más</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium">Activar briefing matutino</p>
-                  <p className="text-xs text-muted-foreground">Recibe tu resumen personalizado cada mañana</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => update('briefing_enabled', !settings.briefing_enabled)}
-                  className={`relative h-5 w-9 rounded-full transition-colors ${
-                    settings.briefing_enabled ? 'bg-primary' : 'bg-muted-foreground/30'
-                  }`}
-                >
-                  <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
-                    settings.briefing_enabled ? 'left-4.5' : 'left-0.5'
-                  }`} />
-                </button>
-              </div>
-
-              {settings.briefing_enabled && (
+                <CardDescription className="text-xs">Ajustes básicos de idioma y región</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium">Hora de envío</label>
+                    <label className="text-sm font-medium">Idioma</label>
+                    <select
+                      className="w-full rounded-lg border border-border/60 bg-background px-3 py-2 text-sm transition-colors focus:border-indigo-500/60 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                      value={settings.language ?? 'es'}
+                      onChange={(e) => update('language', e.target.value)}
+                    >
+                      <option value="es">Español</option>
+                      <option value="en">English</option>
+                      <option value="pt">Português</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium">Zona horaria</label>
                     <Input
-                      type="time"
-                      value={settings.briefing_time ?? '08:00'}
-                      onChange={(e) => update('briefing_time', e.target.value)}
+                      value={settings.timezone ?? 'America/Bogota'}
+                      onChange={(e) => update('timezone', e.target.value)}
+                      placeholder="America/Bogota"
+                      className="border-border/60 focus-visible:ring-indigo-500/30 focus-visible:border-indigo-500/60"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Comportamiento */}
+            <Card className="border-border/60 shadow-sm">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <Brain className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-semibold">Comportamiento</CardTitle>
+                </div>
+                <CardDescription className="text-xs">Configura cómo responde tu asistente</CardDescription>
+              </CardHeader>
+              <CardContent className="divide-y divide-border/40">
+                {[
+                  {
+                    key: 'memory_enabled',
+                    label: 'Memoria activada',
+                    desc: 'El asistente recuerda información sobre ti entre conversaciones',
+                  },
+                  {
+                    key: 'auto_title',
+                    label: 'Títulos automáticos',
+                    desc: 'Genera títulos automáticamente para nuevas conversaciones',
+                  },
+                  {
+                    key: 'stream_responses',
+                    label: 'Respuestas en tiempo real',
+                    desc: 'Muestra la respuesta mientras se genera (streaming)',
+                  },
+                ].map(({ key, label, desc }) => (
+                  <div key={key} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
+                    <div className="mr-6">
+                      <p className="text-sm font-medium">{label}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{desc}</p>
+                    </div>
+                    <Toggle
+                      checked={!!settings[key as keyof UserSetting]}
+                      onChange={() => update(key as keyof UserSetting, !settings[key as keyof UserSetting])}
+                    />
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* Briefing diario */}
+            <Card className="border-border/60 shadow-sm">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-semibold">Briefing diario</CardTitle>
+                </div>
+                <CardDescription className="text-xs">
+                  Tu asistente te envía cada mañana un resumen personalizado con clima, recordatorios y más
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="mr-6">
+                    <p className="text-sm font-medium">Activar briefing matutino</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Recibe tu resumen personalizado cada mañana</p>
+                  </div>
+                  <Toggle
+                    checked={!!settings.briefing_enabled}
+                    onChange={() => update('briefing_enabled', !settings.briefing_enabled)}
+                  />
+                </div>
+
+                {settings.briefing_enabled && (
+                  <div className="grid grid-cols-2 gap-4 pt-1">
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium">Hora de envío</label>
+                      <Input
+                        type="time"
+                        value={settings.briefing_time ?? '08:00'}
+                        onChange={(e) => update('briefing_time', e.target.value)}
+                        className="border-border/60 focus-visible:ring-indigo-500/30 focus-visible:border-indigo-500/60"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium">Ciudad para el clima</label>
+                      <Input
+                        value={settings.briefing_city ?? ''}
+                        onChange={(e) => update('briefing_city', e.target.value)}
+                        placeholder="Ej: Bogotá, Madrid, Miami..."
+                        className="border-border/60 focus-visible:ring-indigo-500/30 focus-visible:border-indigo-500/60"
+                      />
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Persona */}
+            <Card className="border-border/60 shadow-sm">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <Bot className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-semibold">Persona del asistente</CardTitle>
+                </div>
+                <CardDescription className="text-xs">Define cómo se comporta y comunica tu asistente</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-5">
+                {/* Templates */}
+                <div>
+                  <p className="text-[11px] font-semibold text-muted-foreground mb-3 uppercase tracking-wider">
+                    Plantillas rápidas
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {PERSONA_TEMPLATES.map((tpl) => {
+                      const Icon = tpl.icon
+                      const isActive = (settings.persona as { name?: string })?.name === tpl.name
+                      return (
+                        <button
+                          key={tpl.key}
+                          type="button"
+                          onClick={() => update('persona', { name: tpl.name, prompt: tpl.prompt })}
+                          className={`flex items-start gap-3 rounded-xl border p-3 text-left transition-all duration-150 ${
+                            isActive
+                              ? 'border-indigo-500/60 bg-indigo-500/5 shadow-sm shadow-indigo-500/10'
+                              : 'border-border/50 bg-card hover:border-indigo-500/30 hover:bg-muted/40'
+                          }`}
+                        >
+                          <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors ${
+                            isActive ? 'bg-indigo-600 text-white' : 'bg-muted text-muted-foreground'
+                          }`}>
+                            <Icon className="h-4 w-4" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium leading-tight">{tpl.title}</p>
+                            <p className="text-[11px] text-muted-foreground leading-snug mt-0.5">
+                              {tpl.description}
+                            </p>
+                          </div>
+                          {isActive && (
+                            <CheckCircle2 className="h-4 w-4 text-indigo-500 shrink-0 mt-0.5" />
+                          )}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                <Separator className="opacity-50" />
+
+                <div className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium">Nombre del asistente</label>
+                    <Input
+                      value={(settings.persona as { name?: string })?.name ?? ''}
+                      onChange={(e) => update('persona', { ...(settings.persona as object ?? {}), name: e.target.value })}
+                      placeholder="Ej: Aria, Max, Luna..."
+                      className="border-border/60 focus-visible:ring-indigo-500/30 focus-visible:border-indigo-500/60"
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium">Ciudad para el clima</label>
-                    <Input
-                      value={settings.briefing_city ?? ''}
-                      onChange={(e) => update('briefing_city', e.target.value)}
-                      placeholder="Ej: Bogotá, Madrid, Miami..."
+                    <label className="text-sm font-medium">Prompt del sistema</label>
+                    <textarea
+                      className="w-full rounded-lg border border-border/60 bg-background px-3 py-2.5 text-sm min-h-[180px] resize-y font-mono leading-relaxed transition-colors focus:border-indigo-500/60 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                      value={(settings.persona as { prompt?: string })?.prompt ?? ''}
+                      onChange={(e) => update('persona', { ...(settings.persona as object ?? {}), prompt: e.target.value })}
+                      placeholder="Eres un asistente personal experto en tecnología y logística..."
                     />
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">
+                      Este prompt se añade al prompt base del sistema. Personaliza el comportamiento y conocimiento que el asistente debe tener sobre ti.
+                    </p>
                   </div>
                 </div>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          {/* Persona */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Persona del asistente</CardTitle>
-              <CardDescription>Define cómo se comporta y comunica tu asistente</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Templates */}
-              <div>
-                <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">
-                  Templates rápidos
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {PERSONA_TEMPLATES.map((tpl) => {
-                    const Icon = tpl.icon
-                    const isActive = (settings.persona as { name?: string })?.name === tpl.name
-                    return (
-                      <button
-                        key={tpl.key}
-                        type="button"
-                        onClick={() => update('persona', { name: tpl.name, prompt: tpl.prompt })}
-                        className={`flex items-start gap-3 rounded-lg border p-3 text-left transition-all hover:border-primary/50 hover:bg-muted ${
-                          isActive ? 'border-primary bg-primary/5' : 'bg-card'
-                        }`}
-                      >
-                        <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
-                          isActive ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-                        }`}>
-                          <Icon className="h-4 w-4" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium leading-tight">{tpl.title}</p>
-                          <p className="text-[11px] text-muted-foreground leading-snug mt-0.5">
-                            {tpl.description}
-                          </p>
-                        </div>
-                      </button>
-                    )
-                  })}
-                </div>
+            {/* Save bar */}
+            <div className="flex items-center justify-between rounded-xl border border-border/60 bg-muted/30 px-4 py-3">
+              <p className="text-xs text-muted-foreground">
+                Los cambios se aplican en la próxima conversación.
+              </p>
+              <div className="flex items-center gap-3">
+                {saved && (
+                  <span className="flex items-center gap-1.5 text-sm text-emerald-600 font-medium">
+                    <CheckCircle2 className="h-4 w-4" />
+                    Guardado
+                  </span>
+                )}
+                <Button
+                  type="submit"
+                  disabled={saving}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm"
+                >
+                  {saving ? 'Guardando…' : 'Guardar cambios'}
+                </Button>
               </div>
+            </div>
 
-              <Separator />
-
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium">Nombre</label>
-                <Input
-                  value={(settings.persona as { name?: string })?.name ?? ''}
-                  onChange={(e) => update('persona', { ...(settings.persona as object ?? {}), name: e.target.value })}
-                  placeholder="Ej: Aria, Max, Luna..."
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium">Prompt del sistema</label>
-                <textarea
-                  className="w-full rounded-md border bg-background px-3 py-2 text-sm min-h-[160px] resize-y font-mono"
-                  value={(settings.persona as { prompt?: string })?.prompt ?? ''}
-                  onChange={(e) => update('persona', { ...(settings.persona as object ?? {}), prompt: e.target.value })}
-                  placeholder="Eres un asistente personal experto en tecnología y logística..."
-                />
-                <p className="text-[11px] text-muted-foreground">
-                  Este prompt se añade al prompt base del sistema. Personaliza el comportamiento y conocimiento que el asistente debe tener sobre ti.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Separator />
-
-          <div className="flex items-center gap-3">
-            <Button type="submit" disabled={saving}>
-              {saving ? 'Guardando...' : 'Guardar cambios'}
-            </Button>
-            {saved && <span className="text-sm text-green-600 font-medium">Guardado</span>}
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
     </div>
   )

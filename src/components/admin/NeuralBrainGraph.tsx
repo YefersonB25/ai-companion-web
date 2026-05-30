@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useCallback, useState } from 'react'
+import { useMemo } from 'react'
 
 interface MemoryNode {
   id: number
@@ -16,262 +16,164 @@ interface Props {
   height?: number
 }
 
-const TYPE_COLORS: Record<string, string> = {
-  person:     '#818cf8', // indigo
-  event:      '#fbbf24', // amber
-  preference: '#34d399', // emerald
-  skill:      '#60a5fa', // blue
-  habit:      '#a78bfa', // violet
-  project:    '#f87171', // red
-  default:    '#94a3b8', // slate
+const TYPE_COLORS: Record<string, { fill: string; stroke: string; glow: string }> = {
+  person:     { fill: '#818cf8', stroke: '#6366f1', glow: '#6366f155' },
+  event:      { fill: '#fbbf24', stroke: '#f59e0b', glow: '#f59e0b55' },
+  preference: { fill: '#34d399', stroke: '#10b981', glow: '#10b98155' },
+  skill:      { fill: '#60a5fa', stroke: '#3b82f6', glow: '#3b82f655' },
+  habit:      { fill: '#a78bfa', stroke: '#8b5cf6', glow: '#8b5cf655' },
+  project:    { fill: '#f87171', stroke: '#ef4444', glow: '#ef444455' },
+  default:    { fill: '#94a3b8', stroke: '#64748b', glow: '#64748b55' },
 }
 
 const TYPE_LABELS: Record<string, string> = {
-  person:     'Persona',
-  event:      'Evento',
-  preference: 'Preferencia',
-  skill:      'Habilidad',
-  habit:      'Hábito',
-  project:    'Proyecto',
+  person: 'Persona', event: 'Evento', preference: 'Preferencia',
+  skill: 'Habilidad', habit: 'Hábito', project: 'Proyecto',
 }
 
-interface PhysicsNode extends MemoryNode {
-  x: number
-  y: number
-  vx: number
-  vy: number
-  radius: number
-}
+function layoutNodes(nodes: MemoryNode[], w: number, h: number) {
+  const cx = w / 2, cy = h / 2
+  const byType: Record<string, MemoryNode[]> = {}
+  nodes.forEach(n => { (byType[n.type] ??= []).push(n) })
 
-export default function NeuralBrainGraph({ nodes, width = 800, height = 500 }: Props) {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const physicsRef = useRef<PhysicsNode[]>([])
-  const animFrameRef = useRef<number>(0)
-  const pulseRef = useRef(0)
-  const [mounted, setMounted] = useState(false)
+  const typeKeys = Object.keys(byType)
+  const result: (MemoryNode & { x: number; y: number; r: number })[] = []
 
-  useEffect(() => { setMounted(true) }, [])
+  typeKeys.forEach((type, ti) => {
+    const typeNodes = byType[type]
+    const clusterAngle = (ti / typeKeys.length) * Math.PI * 2
+    const clusterR = Math.min(w, h) * 0.28
+    const clusterCx = cx + Math.cos(clusterAngle) * clusterR
+    const clusterCy = cy + Math.sin(clusterAngle) * clusterR
 
-  const color = useCallback((type: string) => TYPE_COLORS[type] ?? TYPE_COLORS.default, [])
-
-  // Initialize physics nodes
-  useEffect(() => {
-    if (!nodes.length) return
-    const cx = width / 2
-    const cy = height / 2
-    physicsRef.current = nodes.map((n, i) => {
-      const angle = (i / nodes.length) * Math.PI * 2
-      const dist = 80 + Math.random() * (Math.min(width, height) * 0.3)
-      return {
+    typeNodes.forEach((n, ni) => {
+      const angle = (ni / typeNodes.length) * Math.PI * 2
+      const spread = Math.min(w, h) * 0.1
+      result.push({
         ...n,
-        x: cx + Math.cos(angle) * dist,
-        y: cy + Math.sin(angle) * dist,
-        vx: (Math.random() - 0.5) * 0.5,
-        vy: (Math.random() - 0.5) * 0.5,
-        radius: 6 + n.importance * 12,
-      }
+        x: clusterCx + Math.cos(angle) * spread * (typeNodes.length > 1 ? 1 : 0),
+        y: clusterCy + Math.sin(angle) * spread * (typeNodes.length > 1 ? 1 : 0),
+        r: 5 + n.importance * 10,
+      })
     })
-  }, [nodes, width, height])
+  })
+  return result
+}
 
-  useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
+export default function NeuralBrainGraph({ nodes, width = 800, height = 460 }: Props) {
+  const laid = useMemo(() => layoutNodes(nodes, width, height), [nodes, width, height])
 
-    const edges: [number, number][] = []
-    nodes.forEach((n) => {
+  const edges = useMemo(() => {
+    const result: [number, number][] = []
+    // parent-child edges
+    laid.forEach((n, i) => {
       if (n.parent_id != null) {
-        const parentIdx = physicsRef.current.findIndex(p => p.id === n.parent_id)
-        const selfIdx = physicsRef.current.findIndex(p => p.id === n.id)
-        if (parentIdx >= 0 && selfIdx >= 0) edges.push([parentIdx, selfIdx])
+        const pi = laid.findIndex(p => p.id === n.parent_id)
+        if (pi >= 0) result.push([pi, i])
       }
     })
-    // Also create edges between same-type nodes (max 2 per type)
+    // same-type nearest neighbor edges (max 1 per node)
     const byType: Record<string, number[]> = {}
-    physicsRef.current.forEach((n, i) => {
-      if (!byType[n.type]) byType[n.type] = []
-      byType[n.type].push(i)
-    })
+    laid.forEach((n, i) => { (byType[n.type] ??= []).push(i) })
     Object.values(byType).forEach(idxs => {
-      for (let i = 0; i < Math.min(idxs.length - 1, 2); i++) {
-        edges.push([idxs[i], idxs[i + 1]])
-      }
+      for (let i = 0; i < idxs.length - 1; i++) result.push([idxs[i], idxs[i + 1]])
     })
-
-    const cx = width / 2
-    const cy = height / 2
-
-    const simulate = () => {
-      const pnodes = physicsRef.current
-      if (!pnodes.length) { animFrameRef.current = requestAnimationFrame(simulate); return }
-
-      pulseRef.current += 0.02
-
-      // Physics: repulsion + attraction to center + edge attraction
-      for (let i = 0; i < pnodes.length; i++) {
-        const a = pnodes[i]
-        // Gentle center attraction
-        a.vx += (cx - a.x) * 0.0008
-        a.vy += (cy - a.y) * 0.0008
-
-        // Node repulsion
-        for (let j = i + 1; j < pnodes.length; j++) {
-          const b = pnodes[j]
-          const dx = a.x - b.x
-          const dy = a.y - b.y
-          const dist = Math.sqrt(dx * dx + dy * dy) || 1
-          const minDist = a.radius + b.radius + 30
-          if (dist < minDist) {
-            const force = (minDist - dist) / dist * 0.05
-            a.vx += dx * force; a.vy += dy * force
-            b.vx -= dx * force; b.vy -= dy * force
-          }
-        }
-      }
-
-      // Edge spring forces
-      edges.forEach(([ai, bi]) => {
-        const a = pnodes[ai], b = pnodes[bi]
-        if (!a || !b) return
-        const dx = b.x - a.x, dy = b.y - a.y
-        const dist = Math.sqrt(dx * dx + dy * dy) || 1
-        const target = 100
-        const force = (dist - target) / dist * 0.02
-        a.vx += dx * force; a.vy += dy * force
-        b.vx -= dx * force; b.vy -= dy * force
-      })
-
-      // Update positions + damping + boundary
-      pnodes.forEach(n => {
-        n.vx *= 0.88; n.vy *= 0.88
-        n.x = Math.max(n.radius + 10, Math.min(width - n.radius - 10, n.x + n.vx))
-        n.y = Math.max(n.radius + 10, Math.min(height - n.radius - 10, n.y + n.vy))
-      })
-
-      // Draw
-      ctx.clearRect(0, 0, width, height)
-
-      // Background grid (subtle)
-      ctx.strokeStyle = 'rgba(99,102,241,0.06)'
-      ctx.lineWidth = 1
-      for (let x = 0; x < width; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke() }
-      for (let y = 0; y < height; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke() }
-
-      // Draw edges with pulse animation
-      edges.forEach(([ai, bi], edgeIdx) => {
-        const a = pnodes[ai], b = pnodes[bi]
-        if (!a || !b) return
-        const grad = ctx.createLinearGradient(a.x, a.y, b.x, b.y)
-        const col = color(a.type)
-        const pulse = Math.sin(pulseRef.current + edgeIdx * 0.7) * 0.5 + 0.5
-        grad.addColorStop(0, col + '33')
-        grad.addColorStop(0.5, col + Math.floor(80 + pulse * 100).toString(16).padStart(2, '0'))
-        grad.addColorStop(1, color(b.type) + '33')
-        ctx.strokeStyle = grad
-        ctx.lineWidth = 1 + pulse * 1.5
-        ctx.beginPath()
-        ctx.moveTo(a.x, a.y)
-        // Slight curve
-        const mx = (a.x + b.x) / 2 + (b.y - a.y) * 0.1
-        const my = (a.y + b.y) / 2 - (b.x - a.x) * 0.1
-        ctx.quadraticCurveTo(mx, my, b.x, b.y)
-        ctx.stroke()
-
-        // Moving particle on edge
-        const t = (Math.sin(pulseRef.current * 1.5 + edgeIdx) * 0.5 + 0.5)
-        const px = a.x + (b.x - a.x) * t
-        const py = a.y + (b.y - a.y) * t
-        ctx.beginPath()
-        ctx.arc(px, py, 2, 0, Math.PI * 2)
-        ctx.fillStyle = col + 'cc'
-        ctx.fill()
-      })
-
-      // Draw nodes
-      pnodes.forEach((n, idx) => {
-        const col = color(n.type)
-        const glow = Math.sin(pulseRef.current + idx * 0.5) * 0.3 + 0.7
-
-        // Outer glow
-        const outerGrad = ctx.createRadialGradient(n.x, n.y, n.radius * 0.5, n.x, n.y, n.radius * 2.5)
-        outerGrad.addColorStop(0, col + Math.floor(glow * 60).toString(16).padStart(2, '0'))
-        outerGrad.addColorStop(1, 'transparent')
-        ctx.beginPath()
-        ctx.arc(n.x, n.y, n.radius * 2.5, 0, Math.PI * 2)
-        ctx.fillStyle = outerGrad
-        ctx.fill()
-
-        // Node body
-        const nodeGrad = ctx.createRadialGradient(n.x - n.radius * 0.3, n.y - n.radius * 0.3, 1, n.x, n.y, n.radius)
-        nodeGrad.addColorStop(0, col + 'ff')
-        nodeGrad.addColorStop(1, col + 'aa')
-        ctx.beginPath()
-        ctx.arc(n.x, n.y, n.radius, 0, Math.PI * 2)
-        ctx.fillStyle = nodeGrad
-        ctx.fill()
-
-        // Node ring
-        ctx.strokeStyle = col
-        ctx.lineWidth = 1.5
-        ctx.globalAlpha = 0.6 + glow * 0.4
-        ctx.stroke()
-        ctx.globalAlpha = 1
-
-        // Label
-        if (n.radius > 8) {
-          ctx.fillStyle = '#fff'
-          ctx.font = `${Math.max(9, Math.min(12, n.radius))}px system-ui`
-          ctx.textAlign = 'center'
-          ctx.textBaseline = 'middle'
-          const maxW = n.radius * 2.2
-          let label = n.label
-          if (ctx.measureText(label).width > maxW) {
-            while (ctx.measureText(label + '…').width > maxW && label.length > 2) label = label.slice(0, -1)
-            label += '…'
-          }
-          ctx.fillText(label, n.x, n.y)
-        }
-      })
-
-      animFrameRef.current = requestAnimationFrame(simulate)
-    }
-
-    animFrameRef.current = requestAnimationFrame(simulate)
-    return () => cancelAnimationFrame(animFrameRef.current)
-  }, [nodes, width, height, color])
-
-  if (!mounted) return <div className="rounded-xl bg-slate-950 animate-pulse" style={{ width: '100%', height }} />
+    return result.slice(0, 60) // cap edges
+  }, [laid])
 
   if (!nodes.length) {
     return (
       <div className="flex items-center justify-center rounded-xl border border-indigo-500/20 bg-slate-950" style={{ width: '100%', height }}>
         <div className="text-center">
           <div className="text-4xl mb-2">🧠</div>
-          <p className="text-slate-400 text-sm">Sin memorias aún — el cerebro está vacío</p>
+          <p className="text-slate-400 text-sm">Sin memorias aún</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div ref={containerRef} className="relative rounded-xl overflow-hidden border border-indigo-500/20 w-full" style={{ height, background: '#020817' }}>
-      <canvas ref={canvasRef} width={width} height={height} className="block w-full" style={{ height }} />
+    <div className="relative w-full rounded-xl overflow-hidden border border-indigo-500/20" style={{ height, background: '#020817' }}>
+      <svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="xMidYMid meet">
+        <defs>
+          {/* Grid pattern */}
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(99,102,241,0.07)" strokeWidth="0.5"/>
+          </pattern>
+          {/* Glow filters */}
+          {Object.entries(TYPE_COLORS).map(([type, c]) => (
+            <filter key={type} id={`glow-${type}`} x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="3" result="blur" />
+              <feFlood floodColor={c.stroke} floodOpacity="0.6" result="color" />
+              <feComposite in="color" in2="blur" operator="in" result="shadow" />
+              <feMerge><feMergeNode in="shadow"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          ))}
+        </defs>
+
+        {/* Background grid */}
+        <rect width={width} height={height} fill="url(#grid)" />
+
+        {/* Edges */}
+        {edges.map(([ai, bi], i) => {
+          const a = laid[ai], b = laid[bi]
+          if (!a || !b) return null
+          const c = TYPE_COLORS[a.type] ?? TYPE_COLORS.default
+          return (
+            <line key={i} x1={a.x} y1={a.y} x2={b.x} y2={b.y}
+              stroke={c.stroke} strokeWidth="0.8" strokeOpacity="0.3"
+              strokeDasharray="4 4">
+              <animate attributeName="stroke-dashoffset" values="8;0" dur={`${2 + (i % 3)}s`} repeatCount="indefinite" />
+            </line>
+          )
+        })}
+
+        {/* Nodes */}
+        {laid.map((n, i) => {
+          const c = TYPE_COLORS[n.type] ?? TYPE_COLORS.default
+          const duration = `${3 + (i % 4)}s`
+          const delay = `${(i * 0.3) % 2}s`
+          const maxLabelLen = Math.floor(n.r * 2.2 / 6)
+          const label = n.label.length > maxLabelLen ? n.label.slice(0, maxLabelLen - 1) + '…' : n.label
+
+          return (
+            <g key={n.id} filter={`url(#glow-${n.type ?? 'default'})`}>
+              {/* Pulse ring */}
+              <circle cx={n.x} cy={n.y} r={n.r + 4} fill="none" stroke={c.stroke} strokeWidth="1" strokeOpacity="0.4">
+                <animate attributeName="r" values={`${n.r + 2};${n.r + 8};${n.r + 2}`} dur={duration} begin={delay} repeatCount="indefinite" />
+                <animate attributeName="stroke-opacity" values="0.4;0;0.4" dur={duration} begin={delay} repeatCount="indefinite" />
+              </circle>
+              {/* Node body */}
+              <circle cx={n.x} cy={n.y} r={n.r} fill={c.fill} fillOpacity="0.85" stroke={c.stroke} strokeWidth="1.5">
+                <animate attributeName="r" values={`${n.r};${n.r * 1.05};${n.r}`} dur={duration} begin={delay} repeatCount="indefinite" />
+              </circle>
+              {/* Label */}
+              {n.r > 7 && (
+                <text x={n.x} y={n.y + 1} textAnchor="middle" dominantBaseline="middle"
+                  fill="white" fontSize={Math.max(8, Math.min(11, n.r))} fontWeight="500"
+                  style={{ pointerEvents: 'none', userSelect: 'none' }}>
+                  {label}
+                </text>
+              )}
+              {/* Tooltip on hover - type label below */}
+              <title>{n.label} ({TYPE_LABELS[n.type] ?? n.type}) — importancia: {n.importance.toFixed(1)}</title>
+            </g>
+          )
+        })}
+      </svg>
 
       {/* Legend */}
       <div className="absolute top-3 right-3 flex flex-col gap-1.5 bg-slate-900/80 backdrop-blur rounded-lg px-3 py-2 border border-slate-700/50">
-        {Object.entries(TYPE_COLORS).filter(([k]) => k !== 'default').map(([type, col]) => (
+        {Object.entries(TYPE_COLORS).filter(([k]) => k !== 'default').map(([type, c]) => (
           <div key={type} className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: col, boxShadow: `0 0 6px ${col}` }} />
-            <span className="text-xs text-slate-300">{TYPE_LABELS[type] ?? type}</span>
+            <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: c.fill }} />
+            <span className="text-[10px] text-slate-300">{TYPE_LABELS[type] ?? type}</span>
           </div>
         ))}
       </div>
 
-      {/* Node count badge */}
       <div className="absolute bottom-3 left-3 bg-indigo-500/20 border border-indigo-500/30 rounded-full px-3 py-1">
-        <span className="text-indigo-300 text-xs font-mono">{nodes.length} nodos neurales</span>
+        <span className="text-indigo-300 text-xs font-mono">{nodes.length} nodos</span>
       </div>
     </div>
   )
