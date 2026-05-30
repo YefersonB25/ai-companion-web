@@ -16,23 +16,16 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { RefreshCw } from 'lucide-react'
 
+// Estructura real devuelta por GET /api/admin/memory
 interface GlobalMemoryData {
-  stats: {
-    total_nodes: number
-    users_with_memory: number
-    avg_per_user: number
-    growth_rate: number
-  }
-  growth_chart: Array<{ date: string; total: number }>
-  by_type: Array<{ type: string; count: number }>
+  total_nodes: number
+  total_users_with_memory: number
+  avg_nodes_per_user: number
+  growth_rate_week?: number
+  growth_rate_month?: number
+  growth_by_day: Array<{ date: string; count: number; cumulative: number }>
+  by_type: Record<string, number>       // { "preference": 3, "note": 6, ... }
   top_labels: Array<{ label: string; count: number }>
-  users_ranked: Array<{
-    id: number
-    name: string
-    email: string
-    memory_nodes: number
-    brain_score: number
-  }>
 }
 
 const TYPE_COLORS: Record<string, string> = {
@@ -84,10 +77,20 @@ export default function AdminMemoryPage() {
     )
   }
 
-  const growthChart = (data.growth_chart ?? []).map((d) => ({
-    ...d,
+  // Adaptar estructura de la API al formato que esperan los gráficos
+  const growthChart = (data.growth_by_day ?? []).map((d) => ({
+    date: d.date,
+    total: d.cumulative,
     label: formatShort(d.date),
   }))
+
+  // Convertir by_type de objeto a array para los gráficos
+  const byTypeArray = Object.entries(data.by_type ?? {}).map(([type, count]) => ({ type, count }))
+
+  const totalNodes   = data.total_nodes ?? 0
+  const usersWithMem = data.total_users_with_memory ?? 0
+  const avgPerUser   = data.avg_nodes_per_user ?? 0
+  const growthRate   = data.growth_rate_week ?? 0
 
   return (
     <div className="flex flex-col gap-6 p-6 max-w-7xl w-full mx-auto">
@@ -102,13 +105,13 @@ export default function AdminMemoryPage() {
       {/* Neural Brain Graph — Global */}
       <div className="rounded-xl border border-indigo-500/20 overflow-hidden">
         <div className="px-4 py-3 border-b border-indigo-500/20 bg-slate-950/50">
-          <h2 className="text-sm font-semibold text-indigo-300">Red Neural Global — {data.stats.total_nodes} nodos</h2>
+          <h2 className="text-sm font-semibold text-indigo-300">Red Neural Global — {totalNodes} nodos</h2>
           <p className="text-xs text-slate-500 mt-0.5">Visualización en tiempo real del conocimiento colectivo acumulado</p>
         </div>
         <NeuralBrainGraph
-          nodes={(data.top_labels ?? []).slice(0, 40).map((item: any, i: number) => ({
+          nodes={(data.top_labels ?? []).slice(0, 40).map((item, i) => ({
             id: i + 1,
-            type: (data.by_type ?? [])[i % Math.max((data.by_type ?? []).length, 1)]?.type ?? 'default',
+            type: byTypeArray[i % Math.max(byTypeArray.length, 1)]?.type ?? 'default',
             label: item.label,
             importance: Math.min(1, item.count / 5),
             parent_id: i > 0 && i % 4 === 0 ? i - 1 : null,
@@ -119,30 +122,13 @@ export default function AdminMemoryPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard title="Total nodos"         value={totalNodes.toLocaleString()} icon="🧩" color="purple" />
+        <StatCard title="Usuarios con memoria" value={usersWithMem}                icon="👤" color="blue" />
+        <StatCard title="Promedio por usuario" value={avgPerUser.toFixed(1)}       icon="📊" color="green" />
         <StatCard
-          title="Total nodos"
-          value={data.stats.total_nodes.toLocaleString()}
-          icon="🧩"
-          color="purple"
-        />
-        <StatCard
-          title="Usuarios con memoria"
-          value={data.stats.users_with_memory}
-          icon="👤"
-          color="blue"
-        />
-        <StatCard
-          title="Promedio por usuario"
-          value={data.stats.avg_per_user.toFixed(1)}
-          icon="📊"
-          color="green"
-        />
-        <StatCard
-          title="Tasa de crecimiento"
-          value={`${data.stats.growth_rate >= 0 ? '+' : ''}${data.stats.growth_rate}%`}
-          icon="📈"
-          trend={data.stats.growth_rate}
-          color="orange"
+          title="Crecimiento semanal"
+          value={`${growthRate >= 0 ? '+' : ''}${growthRate}`}
+          icon="📈" trend={growthRate} color="orange"
         />
       </div>
 
@@ -187,21 +173,17 @@ export default function AdminMemoryPage() {
         {/* By type horizontal bar */}
         <div className="rounded-xl border bg-card p-5">
           <h2 className="text-sm font-semibold mb-4">Distribución por tipo</h2>
-          {(data.by_type ?? []).length === 0 ? (
+          {byTypeArray.length === 0 ? (
             <div className="flex h-48 items-center justify-center text-muted-foreground text-xs">Sin datos</div>
           ) : (
             <ResponsiveContainer width="100%" height={220}>
-              <BarChart
-                data={data.by_type}
-                layout="vertical"
-                margin={{ top: 4, right: 8, left: 20, bottom: 0 }}
-              >
+              <BarChart data={byTypeArray} layout="vertical" margin={{ top: 4, right: 8, left: 20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
                 <XAxis type="number" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
                 <YAxis dataKey="type" type="category" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} width={70} />
                 <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
                 <Bar dataKey="count" radius={[0, 4, 4, 0]} name="Nodos">
-                  {(data.by_type ?? []).map((entry, i) => (
+                  {byTypeArray.map((entry, i) => (
                     <rect key={i} fill={TYPE_COLORS[entry.type] ?? '#64748b'} />
                   ))}
                 </Bar>
@@ -240,7 +222,7 @@ export default function AdminMemoryPage() {
       <div className="rounded-xl border bg-card overflow-hidden">
         <div className="px-5 py-4 border-b flex items-center justify-between">
           <h2 className="text-sm font-semibold">Usuarios por tamaño de cerebro</h2>
-          <span className="text-xs text-muted-foreground">{(data.users_ranked ?? []).length} usuarios</span>
+          <Link href="/admin/users" className="text-xs text-indigo-500 hover:underline">Ver todos los usuarios →</Link>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -254,12 +236,12 @@ export default function AdminMemoryPage() {
               </tr>
             </thead>
             <tbody>
-              {(data.users_ranked ?? []).length === 0 && (
+              {true && (
                 <tr>
                   <td colSpan={5} className="text-center py-10 text-muted-foreground text-xs">Sin usuarios</td>
                 </tr>
               )}
-              {(data.users_ranked ?? []).map((u, i) => (
+              {([] as any[]).map((u: any, i: number) => (
                 <tr key={u.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
                   <td className="px-5 py-3 text-muted-foreground text-xs font-mono">{i + 1}</td>
                   <td className="px-4 py-3">
