@@ -1,36 +1,110 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AI Companion — Frontend Web (Next.js)
 
-## Getting Started
+Interfaz web del asistente personal de IA. Chat con streaming SSE, mapa mental de memoria, gestión de proveedores y configuración.
 
-First, run the development server:
+---
+
+## Stack
+
+| | Tecnología |
+|--|------------|
+| Framework | Next.js 16 (App Router) |
+| Estilos | Tailwind CSS v4 + shadcn/ui |
+| Estado | Zustand (persistente en localStorage) |
+| HTTP | Axios + React Query |
+| WebSockets | Laravel Echo + Pusher JS (Reverb) |
+| Auth | Sanctum tokens (Bearer) |
+
+---
+
+## Desarrollo local
+
+### Requisitos
+- Node.js 20+
+- Backend corriendo en `http://ai-companion.test`
+
+### Instalación
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/YefersonB25/ai-companion-web.git
+cd ai-companion-web
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Variables de entorno (.env.local)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```env
+NEXT_PUBLIC_API_URL=http://ai-companion.test/api
+NEXT_PUBLIC_REVERB_APP_KEY=tu_reverb_app_key
+NEXT_PUBLIC_REVERB_HOST=localhost
+NEXT_PUBLIC_REVERB_PORT=8080
+NEXT_PUBLIC_REVERB_SCHEME=http
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+**Producción** (`.env.production`):
+```env
+NEXT_PUBLIC_API_URL=https://ai.omnirepair.online/api
+NEXT_PUBLIC_REVERB_APP_KEY=tu_reverb_app_key
+NEXT_PUBLIC_REVERB_HOST=ai.omnirepair.online
+NEXT_PUBLIC_REVERB_PORT=443
+NEXT_PUBLIC_REVERB_SCHEME=https
+```
 
-## Learn More
+### Arrancar
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run dev   # http://localhost:3000
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Páginas
 
-## Deploy on Vercel
+| Ruta | Descripción |
+|------|-------------|
+| `/login` | Inicio de sesión |
+| `/register` | Registro |
+| `/chat` | Chat principal (nueva conversación) |
+| `/chat/[id]` | Conversación específica |
+| `/memory` | Mapa mental de nodos de memoria |
+| `/providers` | Gestión de proveedores IA |
+| `/settings` | Configuración del usuario |
+| `/profile` | Perfil personal |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Deploy
+
+**Nunca editar archivos directamente en el servidor.** Todo cambio viene de git.
+
+### Flujo de trabajo
+
+```bash
+# 1. En tu máquina: hacer cambios, commit y push
+git add .
+git commit -m "feat: descripción"
+git push origin main
+
+# 2. En el servidor:
+ssh root@134.122.21.84
+deploy web
+```
+
+El script ejecuta: `git pull` → `npm ci` → `npm run build` → reinicia proceso Next.js.
+
+### Revertir
+
+```bash
+deploy rollback web             # commit anterior
+deploy rollback web abc1234     # commit específico
+```
+
+---
+
+## Producción
+
+| | |
+|--|--|
+| URL | `https://ai.omnirepair.online` |
+| Proceso | `ai-companion-web` (Supervisor, puerto 3000) |
+| Logs | `tail -f /var/log/ai-companion-web.log` |
