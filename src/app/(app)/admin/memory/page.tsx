@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { adminApi } from '@/lib/adminApi'
 import StatCard from '@/components/admin/StatCard'
 import BrainScore from '@/components/admin/BrainScore'
+import NeuralBrainGraph from '@/components/admin/NeuralBrainGraph'
 import {
   AreaChart, Area, BarChart, Bar,
   XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
@@ -95,6 +96,24 @@ export default function AdminMemoryPage() {
           <span>🧠</span> Cerebro Global
         </h1>
         <p className="text-sm text-muted-foreground mt-0.5">Memoria acumulada de todos los usuarios</p>
+      </div>
+
+      {/* Neural Brain Graph — Global */}
+      <div className="rounded-xl border border-indigo-500/20 overflow-hidden">
+        <div className="px-4 py-3 border-b border-indigo-500/20 bg-slate-950/50">
+          <h2 className="text-sm font-semibold text-indigo-300">Red Neural Global — {data.stats.total_nodes} nodos</h2>
+          <p className="text-xs text-slate-500 mt-0.5">Visualización en tiempo real del conocimiento colectivo acumulado</p>
+        </div>
+        <NeuralBrainGraph
+          nodes={(data.top_labels ?? []).slice(0, 40).map((item: any, i: number) => ({
+            id: i + 1,
+            type: (data.by_type ?? [])[i % Math.max((data.by_type ?? []).length, 1)]?.type ?? 'default',
+            label: item.label,
+            importance: Math.min(1, item.count / 5),
+            parent_id: i > 0 && i % 4 === 0 ? i - 1 : null,
+          }))}
+          width={900} height={480}
+        />
       </div>
 
       {/* Stats */}

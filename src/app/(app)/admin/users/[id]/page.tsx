@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { adminApi } from '@/lib/adminApi'
 import BrainScore from '@/components/admin/BrainScore'
 import StatCard from '@/components/admin/StatCard'
+import NeuralBrainGraph from '@/components/admin/NeuralBrainGraph'
 import {
   LineChart, Line, AreaChart, Area, PieChart, Pie, Cell,
   XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend,
@@ -180,13 +181,23 @@ export default function AdminUserDetailPage() {
       <div className="rounded-xl border border-indigo-200 dark:border-indigo-900 bg-gradient-to-br from-indigo-50/50 to-violet-50/30 dark:from-indigo-950/30 dark:to-violet-950/20 p-5">
         <div className="flex items-center gap-2 mb-6">
           <span className="text-lg">🧠</span>
-          <h2 className="text-base font-bold text-indigo-700 dark:text-indigo-300">El Cerebro</h2>
+          <h2 className="text-base font-bold text-indigo-700 dark:text-indigo-300">🧠 Red Neural — El Cerebro</h2>
         </div>
 
         {/* Brain score */}
         <div className="mb-6 max-w-sm">
           <p className="text-xs text-muted-foreground mb-2 font-medium uppercase tracking-wide">Brain Score</p>
           <BrainScore score={stats.brain_score} size="lg" />
+          {/* Red Neural animada */}
+          <div className="mt-4">
+            <NeuralBrainGraph
+              nodes={(detail.recent_memories ?? []).map((m: any) => ({
+                id: m.id, type: m.type, label: m.label,
+                importance: m.importance ?? 0.5, parent_id: m.parent_id
+              }))}
+              width={680} height={400}
+            />
+          </div>
         </div>
 
         {/* Brain growth + type distribution */}
