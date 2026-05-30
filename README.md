@@ -111,6 +111,20 @@ La visualización del cerebro usa SVG puro con animaciones CSS (`<animate>`):
 - Nodos con pulso CSS suave
 - Tooltip al hover con detalle del nodo
 
+### Estructura real del API `/admin/memory`
+```json
+{
+  "total_nodes": 16,
+  "total_users_with_memory": 1,
+  "avg_nodes_per_user": 16,
+  "growth_rate_week": 0,
+  "growth_by_day": [{ "date": "...", "count": 16, "cumulative": 16 }],
+  "by_type": { "note": 6, "person": 4, "preference": 3, "event": 2, "habit": 1 },
+  "top_labels": [{ "label": "...", "count": 1 }]
+}
+```
+> `by_type` es un objeto `Record<string, number>`, el frontend lo convierte a array para los gráficos.
+
 ---
 
 ## Deploy
