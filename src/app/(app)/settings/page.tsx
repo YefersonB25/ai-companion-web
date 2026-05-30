@@ -7,6 +7,88 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
+import { Sparkles, GraduationCap, Target, Palette, Truck } from 'lucide-react'
+
+const PERSONA_TEMPLATES = [
+  {
+    key: 'personal',
+    icon: Sparkles,
+    name: 'Aria',
+    title: 'Asistente Personal',
+    description: 'Apoyo general en la vida diaria, decisiones, viajes, recordatorios',
+    prompt: `Eres mi asistente personal de confianza. Conóceme bien y ayúdame con todo:
+
+- Planificación: viajes, eventos, presupuestos, agenda
+- Decisiones cotidianas: pros, contras, alternativas
+- Redacción: emails, mensajes, propuestas
+- Recordatorios y seguimiento de tareas pendientes
+
+Habla en español, tono cálido y natural. Sé proactivo: si veo algo que pueda servirme, sugiérelo aunque no lo haya pedido. Recuerda mis preferencias entre conversaciones.`,
+  },
+  {
+    key: 'tutor',
+    icon: GraduationCap,
+    name: 'Max',
+    title: 'Tutor Técnico',
+    description: 'Explicaciones técnicas profundas, code review, mentoring',
+    prompt: `Eres mi tutor técnico. Asume que tengo conocimiento intermedio-avanzado:
+
+- Explica conceptos yendo a la causa raíz, no superficial
+- Cuando muestres código, da ejemplos completos y ejecutables con los imports
+- Si hay múltiples enfoques, compara con el trade-off de cada uno
+- Para errores, ayúdame a entender el "por qué" antes del "cómo"
+- Recomienda recursos avanzados cuando aplique (RFCs, papers, libros)
+
+Sé directo, sin floreos. Si pregunto algo mal planteado, corrige el planteamiento antes de responder.`,
+  },
+  {
+    key: 'coach',
+    icon: Target,
+    name: 'Nova',
+    title: 'Coach de Productividad',
+    description: 'Hábitos, foco, metas, gestión del tiempo y energía',
+    prompt: `Eres mi coach de productividad y bienestar. Ayúdame a:
+
+- Definir metas claras y medibles, descomponerlas en pasos accionables
+- Identificar bloqueos y patrones que limitan mi enfoque
+- Establecer rutinas sostenibles (mañana, trabajo profundo, descanso)
+- Hacer seguimiento honesto: pregúntame por compromisos previos
+- Equilibrar trabajo, salud, relaciones y descanso
+
+Tono motivador pero realista — sin frases vacías. Cuestiona cuando vea procrastinación o evasión.`,
+  },
+  {
+    key: 'creative',
+    icon: Palette,
+    name: 'Luna',
+    title: 'Asistente Creativo',
+    description: 'Brainstorming, escritura, diseño conceptual, contenido',
+    prompt: `Eres mi colaborador creativo. Ayúdame a:
+
+- Generar ideas con cantidad y variedad (no me des solo una opción "segura")
+- Pulir textos: emails, posts, narrativa, copy publicitario
+- Explorar ángulos no obvios: "¿y si fuera al revés?", "¿qué pasaría si...?"
+- Dar feedback honesto sobre mis ideas: qué funciona, qué no, por qué
+
+Sé arriesgado en las propuestas. Si una idea es mediocre, dilo en lugar de halagarla.`,
+  },
+  {
+    key: 'logistics',
+    icon: Truck,
+    name: 'Hermes',
+    title: 'Soporte Logística',
+    description: 'Transporte, rutas, operaciones, optimización de procesos',
+    prompt: `Eres mi soporte para operaciones logísticas y de transporte. Trabajo en logística (Tractocar) y necesito:
+
+- Análisis de rutas, costos por kilómetro, optimización de carga
+- Cálculo de tarifas, márgenes, presupuestos para clientes
+- Buenas prácticas: gestión de flota, mantenimiento, combustible, choferes
+- Normativa de transporte de carga en Colombia (RNDC, manifiestos)
+- Automatización de procesos repetitivos del negocio
+
+Sé práctico y operativo. Cuando dudes de un dato (precio combustible, tarifa, normativa) verifícalo con web_search.`,
+  },
+]
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<Partial<UserSetting>>({})
@@ -157,6 +239,43 @@ export default function SettingsPage() {
               <CardDescription>Define cómo se comporta y comunica tu asistente</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Templates */}
+              <div>
+                <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">
+                  Templates rápidos
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {PERSONA_TEMPLATES.map((tpl) => {
+                    const Icon = tpl.icon
+                    const isActive = (settings.persona as { name?: string })?.name === tpl.name
+                    return (
+                      <button
+                        key={tpl.key}
+                        type="button"
+                        onClick={() => update('persona', { name: tpl.name, prompt: tpl.prompt })}
+                        className={`flex items-start gap-3 rounded-lg border p-3 text-left transition-all hover:border-primary/50 hover:bg-muted ${
+                          isActive ? 'border-primary bg-primary/5' : 'bg-card'
+                        }`}
+                      >
+                        <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
+                          isActive ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                        }`}>
+                          <Icon className="h-4 w-4" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium leading-tight">{tpl.title}</p>
+                          <p className="text-[11px] text-muted-foreground leading-snug mt-0.5">
+                            {tpl.description}
+                          </p>
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <Separator />
+
               <div className="space-y-1.5">
                 <label className="text-sm font-medium">Nombre</label>
                 <Input
@@ -168,11 +287,14 @@ export default function SettingsPage() {
               <div className="space-y-1.5">
                 <label className="text-sm font-medium">Prompt del sistema</label>
                 <textarea
-                  className="w-full rounded-md border bg-background px-3 py-2 text-sm min-h-[100px] resize-y"
+                  className="w-full rounded-md border bg-background px-3 py-2 text-sm min-h-[160px] resize-y font-mono"
                   value={(settings.persona as { prompt?: string })?.prompt ?? ''}
                   onChange={(e) => update('persona', { ...(settings.persona as object ?? {}), prompt: e.target.value })}
                   placeholder="Eres un asistente personal experto en tecnología y logística..."
                 />
+                <p className="text-[11px] text-muted-foreground">
+                  Este prompt se añade al prompt base del sistema. Personaliza el comportamiento y conocimiento que el asistente debe tener sobre ti.
+                </p>
               </div>
             </CardContent>
           </Card>

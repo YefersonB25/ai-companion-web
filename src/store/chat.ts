@@ -82,41 +82,67 @@ export const useChatStore = create<ChatState>((set, get) => ({
     get().startStream()
     set((s) => ({ messages: [...s.messages, streamMsg] }))
 
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL ?? 'http://ai-companion.test/api'}/conversations/${conversation.id}/messages`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'text/event-stream',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({ content, provider, stream: true }),
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL ?? 'http://ai-companion.test/api'}/conversations/${conversation.id}/messages`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'text/event-stream',
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+          body: JSON.stringify({ content, provider, stream: true }),
+        }
+      )
+
+      if (!response.ok) {
+        let errMsg = `Error ${response.status}`
+        try {
+          const body = await response.json()
+          errMsg = body.message ?? errMsg
+        } catch {}
+        get().appendStreamChunk(`⚠️ ${errMsg}`)
+        return
       }
-    )
 
-    const reader = response.body?.getReader()
-    const decoder = new TextDecoder()
+      const ctype = response.headers.get('content-type') ?? ''
 
-    if (reader) {
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-        const text = decoder.decode(value)
-        const lines = text.split('\n')
-        for (const line of lines) {
-          if (line.startsWith('data: ') && line !== 'data: [DONE]') {
-            try {
-              const json = JSON.parse(line.slice(6))
-              if (json.chunk) get().appendStreamChunk(json.chunk)
-            } catch {}
+      // Non-streaming JSON response (when backend uses tool-calling agent loop)
+      if (ctype.includes('application/json')) {
+        const data = await response.json()
+        const text = data.content ?? data.message ?? ''
+        if (text) get().appendStreamChunk(text)
+        return
+      }
+
+      const reader = response.body?.getReader()
+      const decoder = new TextDecoder()
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+          const text = decoder.decode(value)
+          const lines = text.split('\n')
+          for (const line of lines) {
+            if (line.startsWith('data: ') && line !== 'data: [DONE]') {
+              try {
+                const json = JSON.parse(line.slice(6))
+                if (json.chunk) get().appendStreamChunk(json.chunk)
+                if (json.error) get().appendStreamChunk(`⚠️ ${json.error}`)
+              } catch {}
+            }
           }
         }
       }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Error de red'
+      get().appendStreamChunk(`⚠️ ${msg}`)
+    } finally {
+      get().endStream()
+      await get().loadConversations()
     }
-
-    get().endStream()
-    await get().loadConversations()
   },
 
   addMessage: (msg) => set((s) => ({ messages: [...s.messages, msg] })),

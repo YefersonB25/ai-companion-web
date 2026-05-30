@@ -27,10 +27,15 @@ export default function ConversationPage() {
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       <ScrollArea className="flex-1">
-        <div className="mx-auto max-w-3xl py-4">
+        <div className="mx-auto w-full max-w-3xl px-2 py-6">
           {messages.length === 0 && (
-            <div className="flex h-full items-center justify-center py-20 text-muted-foreground text-sm">
-              Envía tu primer mensaje para comenzar
+            <div className="flex flex-col items-center justify-center gap-3 py-24 text-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-md shadow-indigo-500/30">
+                <span className="text-lg">✨</span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Envía tu primer mensaje para comenzar
+              </p>
             </div>
           )}
           {messages.map((msg, i) => (

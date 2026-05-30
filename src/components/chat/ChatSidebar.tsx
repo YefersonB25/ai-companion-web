@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import {
-  MessageSquare, Plus, Brain, Settings, Cpu, LogOut, User, Smartphone
+  MessageSquare, Plus, Brain, Settings, Cpu, LogOut, User, Smartphone, Sparkles, ShieldCheck
 } from 'lucide-react'
 
 const navItems = [
@@ -39,8 +39,8 @@ export default function ChatSidebar() {
     <div className="flex h-full w-64 flex-col border-r bg-muted/30">
       {/* Header */}
       <div className="flex items-center gap-2 p-4">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground text-lg">
-          🧠
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-sm">
+          <Sparkles className="h-4 w-4" />
         </div>
         <span className="font-semibold text-sm">AI Companion</span>
       </div>
@@ -91,6 +91,14 @@ export default function ChatSidebar() {
             </div>
           </Link>
         ))}
+        {user?.is_admin && (
+          <Link href="/admin">
+            <div className="flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-indigo-50 dark:hover:bg-indigo-950/50 transition-colors cursor-pointer text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 font-medium">
+              <ShieldCheck className="h-4 w-4" />
+              Admin
+            </div>
+          </Link>
+        )}
       </div>
 
       <Separator />
