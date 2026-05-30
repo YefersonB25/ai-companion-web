@@ -85,6 +85,7 @@ export default function AdminUserDetailPage() {
 
   const [detail, setDetail] = useState<UserDetail | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (user && !user.is_admin) router.replace('/chat')
@@ -94,7 +95,10 @@ export default function AdminUserDetailPage() {
     if (!userId) return
     adminApi.userDetail(userId)
       .then(({ data }) => setDetail(data))
-      .catch(console.error)
+      .catch((err) => {
+        console.error(err)
+        setError('No se pudieron cargar los datos. Verifica tu conexión.')
+      })
       .finally(() => setLoading(false))
   }, [userId])
 
@@ -129,6 +133,13 @@ export default function AdminUserDetailPage() {
 
   return (
     <div className="flex flex-col gap-6 p-6 max-w-7xl w-full mx-auto">
+      {error && (
+        <div className="flex items-center gap-2 rounded-lg bg-destructive/10 border border-destructive/20 px-4 py-3 text-sm text-destructive">
+          <span>&#9888;</span> {error}
+          <button onClick={() => setError(null)} className="ml-auto text-xs underline">Cerrar</button>
+        </div>
+      )}
+
       {/* Back */}
       <Link href="/admin/users">
         <Button variant="ghost" size="sm" className="gap-1.5 -ml-1 text-muted-foreground">
@@ -186,17 +197,19 @@ export default function AdminUserDetailPage() {
         </div>
 
         {/* Brain score */}
-        <div className="mb-6 max-w-sm">
-          <p className="text-xs text-muted-foreground mb-2 font-medium uppercase tracking-wide">Brain Score</p>
-          <BrainScore score={stats.brain_score} size="lg" />
+        <div className="mb-6">
+          <div className="max-w-sm mb-4">
+            <p className="text-xs text-muted-foreground mb-2 font-medium uppercase tracking-wide">Brain Score</p>
+            <BrainScore score={stats.brain_score} size="lg" />
+          </div>
           {/* Red Neural animada */}
-          <div className="mt-4">
+          <div className="w-full overflow-hidden">
             <NeuralBrainGraph
               nodes={(detail.recent_memories ?? []).map((m: any) => ({
                 id: m.id, type: m.type, label: m.label,
                 importance: m.importance ?? 0.5, parent_id: m.parent_id
               }))}
-              width={680} height={400}
+              height={300}
             />
           </div>
         </div>

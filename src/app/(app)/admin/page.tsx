@@ -41,6 +41,7 @@ export default function AdminDashboardPage() {
   const router = useRouter()
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [insights, setInsights] = useState<Insight[] | null>(null)
   const [insightsLoading, setInsightsLoading] = useState(false)
   const [showInsights, setShowInsights] = useState(false)
@@ -52,7 +53,10 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     adminApi.dashboard()
       .then(({ data }) => setData(data))
-      .catch(console.error)
+      .catch((err) => {
+        console.error(err)
+        setError('No se pudieron cargar los datos. Verifica tu conexión.')
+      })
       .finally(() => setLoading(false))
   }, [])
 
@@ -98,6 +102,13 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="flex flex-col gap-6 p-6 max-w-7xl w-full mx-auto">
+      {error && (
+        <div className="flex items-center gap-2 rounded-lg bg-destructive/10 border border-destructive/20 px-4 py-3 text-sm text-destructive">
+          <span>&#9888;</span> {error}
+          <button onClick={() => setError(null)} className="ml-auto text-xs underline">Cerrar</button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

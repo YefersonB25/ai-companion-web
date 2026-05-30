@@ -38,6 +38,7 @@ export default function AdminUsersPage() {
   const router = useRouter()
   const [users, setUsers] = useState<AdminUser[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (user && !user.is_admin) router.replace('/chat')
@@ -46,7 +47,10 @@ export default function AdminUsersPage() {
   useEffect(() => {
     adminApi.users()
       .then(({ data }) => setUsers(data.users ?? data))
-      .catch(console.error)
+      .catch((err) => {
+        console.error(err)
+        setError('No se pudieron cargar los datos. Verifica tu conexión.')
+      })
       .finally(() => setLoading(false))
   }, [])
 
@@ -61,6 +65,13 @@ export default function AdminUsersPage() {
 
   return (
     <div className="flex flex-col gap-6 p-6 max-w-7xl w-full mx-auto">
+      {error && (
+        <div className="flex items-center gap-2 rounded-lg bg-destructive/10 border border-destructive/20 px-4 py-3 text-sm text-destructive">
+          <span>&#9888;</span> {error}
+          <button onClick={() => setError(null)} className="ml-auto text-xs underline">Cerrar</button>
+        </div>
+      )}
+
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Usuarios</h1>
         <p className="text-sm text-muted-foreground mt-0.5">{users.length} usuarios registrados</p>

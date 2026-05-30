@@ -12,7 +12,7 @@ export default function ConversationPage() {
   const id = Number(params.id)
   const { messages, isStreaming, selectConversation, sendMessage, activeConversation } = useChatStore()
 
-  useRealtimeChat(activeConversation?.id ?? null)
+  const connected = useRealtimeChat(activeConversation?.id ?? null)
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -25,6 +25,12 @@ export default function ConversationPage() {
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
+      {!connected && (
+        <div className="flex items-center justify-center gap-2 px-4 py-1.5 bg-amber-50 dark:bg-amber-950/30 border-b border-amber-200 dark:border-amber-800 text-xs text-amber-700 dark:text-amber-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+          Sin conexión en tiempo real — los mensajes nuevos no se actualizarán automáticamente
+        </div>
+      )}
       <div className="flex-1 min-h-0 overflow-y-auto">
         <div className="mx-auto w-full max-w-3xl px-2 py-6">
           {messages.length === 0 && (
