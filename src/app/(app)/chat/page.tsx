@@ -1,20 +1,25 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { Sparkles, Zap, Brain, Mail } from 'lucide-react'
+import { Sparkles, Zap, Brain, Mail, Globe, Code2 } from 'lucide-react'
 import { useChatStore } from '@/store/chat'
 import ChatInput from '@/components/chat/ChatInput'
+import { useAuthStore } from '@/store/auth'
 
 const suggestions = [
-  { icon: Sparkles, text: 'Ayúdame a planificar mi semana' },
-  { icon: Zap,      text: 'Analiza este código y mejóralo' },
-  { icon: Brain,    text: 'Explícame este concepto técnico' },
-  { icon: Mail,     text: 'Redacta un email profesional' },
+  { icon: Sparkles, text: 'Planifica mi semana',          desc: 'Organiza tareas y prioridades' },
+  { icon: Globe,    text: 'Busca noticias de hoy',        desc: 'Con búsqueda web en tiempo real' },
+  { icon: Code2,    text: 'Analiza y mejora este código', desc: 'Revisión y sugerencias de código' },
+  { icon: Mail,     text: 'Redacta un email profesional', desc: 'Con tono y formato adecuados' },
+  { icon: Brain,    text: 'Explícame un concepto',        desc: 'De forma simple y clara' },
+  { icon: Zap,      text: '¿Qué puedes hacer?',           desc: 'Descubre las capacidades de Aria' },
 ]
 
 export default function ChatPage() {
   const router = useRouter()
   const { sendMessage, createConversation, isStreaming } = useChatStore()
+  const { user } = useAuthStore()
+  const firstName = user?.name?.split(' ')[0] ?? ''
 
   const startWith = async (text: string) => {
     const conv = await createConversation()
@@ -24,33 +29,34 @@ export default function ChatPage() {
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
-      <div className="flex flex-1 flex-col items-center justify-center gap-10 p-8">
-        <div className="text-center">
-          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-lg shadow-indigo-500/30">
-            <Sparkles className="h-7 w-7" />
-          </div>
-          <h1 className="text-2xl font-semibold tracking-tight">¿En qué puedo ayudarte?</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Tu asistente personal con memoria. Pregunta lo que quieras.
-          </p>
+      {/* Welcome area */}
+      <div className="flex flex-1 flex-col items-center justify-center gap-8 px-4 py-8 overflow-y-auto">
+        <div className="text-center space-y-2">
+          <h1 className="text-3xl font-semibold tracking-tight">
+            {firstName ? `Hola, ${firstName}` : '¿En qué puedo ayudarte?'}
+          </h1>
+          {firstName && (
+            <p className="text-lg text-muted-foreground">¿En qué puedo ayudarte hoy?</p>
+          )}
         </div>
 
-        <div className="grid w-full max-w-2xl grid-cols-1 gap-3 sm:grid-cols-2">
-          {suggestions.map(({ icon: Icon, text }) => (
+        {/* Suggestion chips */}
+        <div className="grid w-full max-w-2xl grid-cols-2 gap-2 sm:grid-cols-3">
+          {suggestions.map(({ icon: Icon, text, desc }) => (
             <button
               key={text}
               onClick={() => startWith(text)}
-              className="group flex items-center gap-3 rounded-xl border bg-card p-4 text-left text-sm text-muted-foreground transition-all hover:border-primary/30 hover:bg-muted hover:text-foreground hover:shadow-sm"
+              className="group flex flex-col gap-1.5 rounded-xl border bg-card p-4 text-left transition-all hover:border-primary/30 hover:bg-muted hover:shadow-sm active:scale-[0.98]"
             >
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-                <Icon className="h-4 w-4" />
-              </div>
-              <span>{text}</span>
+              <Icon className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+              <span className="text-sm font-medium leading-tight">{text}</span>
+              <span className="text-xs text-muted-foreground">{desc}</span>
             </button>
           ))}
         </div>
       </div>
 
+      {/* Input */}
       <ChatInput
         onSend={async (text) => {
           const conv = await createConversation()
