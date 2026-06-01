@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { LayoutDashboard, Users, Brain, ArrowLeft, ShieldCheck } from 'lucide-react'
+import { LayoutDashboard, Users, Brain, ArrowLeft, ShieldCheck, Key, Inbox, Settings2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -12,6 +12,12 @@ const navItems = [
   { href: '/admin',         icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/admin/users',   icon: Users,           label: 'Usuarios' },
   { href: '/admin/memory',  icon: Brain,           label: 'Cerebro Global' },
+]
+
+const licenseItems = [
+  { href: '/admin/licenses',          icon: Key,       label: 'Licencias' },
+  { href: '/admin/license-requests',  icon: Inbox,     label: 'Solicitudes' },
+  { href: '/admin/license-settings',  icon: Settings2, label: 'Configuración' },
 ]
 
 export default function AdminNav() {
@@ -41,8 +47,25 @@ export default function AdminNav() {
       <Separator />
 
       {/* Nav links */}
-      <nav className="flex-1 p-2 space-y-1">
+      <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
         {navItems.map(({ href, icon: Icon, label }) => (
+          <Link key={href} href={href}>
+            <div className={cn(
+              'flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors cursor-pointer',
+              isActive(href)
+                ? 'bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 font-medium'
+                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+            )}>
+              <Icon className="h-4 w-4 shrink-0" />
+              {label}
+            </div>
+          </Link>
+        ))}
+
+        <p className="px-3 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          Licencias
+        </p>
+        {licenseItems.map(({ href, icon: Icon, label }) => (
           <Link key={href} href={href}>
             <div className={cn(
               'flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors cursor-pointer',

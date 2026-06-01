@@ -12,7 +12,7 @@ import { Separator } from '@/components/ui/separator'
 import ThemeToggle from '@/components/ui/ThemeToggle'
 import {
   MessageSquare, Brain, Settings, Cpu, LogOut, User,
-  Smartphone, Sparkles, ShieldCheck, Search, ChevronLeft, ChevronRight, Pencil
+  Smartphone, Sparkles, ShieldCheck, Search, ChevronLeft, ChevronRight, Pencil, Key
 } from 'lucide-react'
 import type { Conversation } from '@/types'
 
@@ -21,6 +21,7 @@ const navItems = [
   { href: '/memory',    icon: Brain,       label: 'Mapa Mental' },
   { href: '/providers', icon: Cpu,         label: 'Proveedores IA' },
   { href: '/settings',  icon: Settings,    label: 'Configuración' },
+  { href: '/license',   icon: Key,         label: 'Mi Licencia' },
   { href: '/download',  icon: Smartphone,  label: 'App Android' },
 ]
 
