@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Trash2, Star, CheckCircle, XCircle } from 'lucide-react'
+import { Plus, Trash2, Star, CheckCircle, XCircle, ExternalLink } from 'lucide-react'
 
 const PROVIDER_ICONS: Record<string, string> = {
   claude: '🟣', openai: '🟢', deepseek: '🔵', gemini: '🔶', mistral: '🔴',
@@ -17,7 +17,7 @@ export default function ProvidersPage() {
   const [providers, setProviders] = useState<AiProvider[]>([])
   const [supported, setSupported] = useState<SupportedProvider[]>([])
   const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState({ provider: 'claude', model: 'claude-sonnet-4-6', api_key: '' })
+  const [form, setForm] = useState({ provider: 'gemini', model: 'gemini-2.0-flash', api_key: '' })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -118,12 +118,45 @@ export default function ProvidersPage() {
                     </select>
                   </div>
                 </div>
+                {/* Gemini inline guide */}
+                {form.provider === 'gemini' && (
+                  <div className="rounded-xl border border-emerald-200 bg-emerald-50 dark:border-emerald-900/40 dark:bg-emerald-900/10 p-4 space-y-3">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">🔶 Cómo obtener tu API key gratis</span>
+                      <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400 border-0 text-[10px]">✨ GRATIS</Badge>
+                    </div>
+                    <div className="space-y-2">
+                      {[
+                        'Abre el enlace de abajo y presiona «Crear API Key»',
+                        'Copia la clave generada (empieza con "AIza...")',
+                        'Pégala en el campo API Key de abajo y guarda',
+                      ].map((step, i) => (
+                        <div key={i} className="flex items-start gap-2.5">
+                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-indigo-500 text-[10px] font-bold text-white mt-0.5">
+                            {i + 1}
+                          </span>
+                          <span className="text-xs text-emerald-800 dark:text-emerald-300">{step}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <a
+                      href="https://aistudio.google.com/apikey"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400 hover:underline"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                      Ir a aistudio.google.com/apikey
+                    </a>
+                  </div>
+                )}
+
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium">API Key</label>
                   <Input
                     type="password"
                     autoComplete="new-password"
-                    placeholder="sk-... o similar"
+                    placeholder={form.provider === 'gemini' ? 'AIzaSy...' : 'sk-... o similar'}
                     value={form.api_key}
                     onChange={(e) => setForm({ ...form, api_key: e.target.value })}
                     required
@@ -144,9 +177,56 @@ export default function ProvidersPage() {
 
         {/* Provider list */}
         <div className="space-y-3">
-          {providers.length === 0 && (
-            <Card className="py-10 text-center text-muted-foreground text-sm">
-              No hay proveedores configurados. Agrega tu primera API key.
+          {providers.length === 0 && !showForm && (
+            <Card className="border-amber-200 bg-amber-50/50 dark:border-amber-900/40 dark:bg-amber-900/10">
+              <CardContent className="p-6 space-y-4">
+                <div className="flex items-start gap-3">
+                  <span className="text-3xl">🔶</span>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="font-semibold text-sm">Google Gemini</h3>
+                      <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400 border-0 text-[10px]">
+                        ✨ GRATIS
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">1,500 solicitudes/día · sin tarjeta</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      La forma más rápida de empezar. Obtén tu API key gratis en 1 minuto.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  {[
+                    'Abre el enlace de abajo y presiona «Crear API Key»',
+                    'Copia la clave generada (empieza con "AIza...")',
+                    'Regresa aquí, presiona «Agregar proveedor» y pégala',
+                  ].map((step, i) => (
+                    <div key={i} className="flex items-start gap-2.5">
+                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-400 text-[10px] font-bold text-white mt-0.5">
+                        {i + 1}
+                      </span>
+                      <span className="text-sm text-amber-800 dark:text-amber-300">{step}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <a
+                    href="https://aistudio.google.com/apikey"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold px-4 py-2 transition-colors"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    Obtener API key gratis → aistudio.google.com
+                  </a>
+                  <Button size="sm" variant="outline" onClick={() => setShowForm(true)}>
+                    <Plus className="h-3.5 w-3.5 mr-1.5" />
+                    Ya tengo mi key
+                  </Button>
+                </div>
+              </CardContent>
             </Card>
           )}
           {providers.map((p) => (
