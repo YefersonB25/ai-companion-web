@@ -2,6 +2,7 @@ import api from './api'
 
 export const adminApi = {
   dashboard: () => api.get('/admin/dashboard'),
+  usage: () => api.get('/admin/usage'),
   users: () => api.get('/admin/users'),
   userDetail: (id: number) => api.get(`/admin/users/${id}`),
   globalMemory: () => api.get('/admin/memory'),

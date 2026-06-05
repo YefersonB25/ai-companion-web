@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { LayoutDashboard, Users, Brain, ArrowLeft, ShieldCheck, Key, Inbox, Settings2 } from 'lucide-react'
+import { LayoutDashboard, Users, Brain, ArrowLeft, ShieldCheck, Key, Inbox, Settings2, DollarSign } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -10,6 +10,7 @@ import { Separator } from '@/components/ui/separator'
 
 const navItems = [
   { href: '/admin',         icon: LayoutDashboard, label: 'Dashboard' },
+  { href: '/admin/usage',   icon: DollarSign,      label: 'Costos' },
   { href: '/admin/users',   icon: Users,           label: 'Usuarios' },
   { href: '/admin/memory',  icon: Brain,           label: 'Cerebro Global' },
 ]
