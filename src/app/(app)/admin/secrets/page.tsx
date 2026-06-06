@@ -85,7 +85,10 @@ export default function AdminSecretsPage() {
   const load = useCallback(() => {
     setLoading(true)
     adminApi.getSecrets()
-      .then(({ data }) => { setSecrets(data); setError(null) })
+      .then(({ data }) => {
+        const list = Array.isArray(data) ? data : ((data as { secrets?: Secret[] })?.secrets ?? [])
+        setSecrets(list); setError(null)
+      })
       .catch((err) => {
         console.error(err)
         setError('No se pudieron cargar los secretos. Verifica tu conexión.')
