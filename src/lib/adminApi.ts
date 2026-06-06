@@ -47,10 +47,10 @@ export const adminApi = {
   toggleAdmin: (id: number) => api.post(`/admin/users/${id}/toggle-admin`),
 
   // Secretos / Keys (solo documentación, sin valores)
-  getSecrets: () => api.get<{ secrets: Secret[] }>('/admin/secrets'),
+  getSecrets: () => api.get<Secret[]>('/admin/secrets'),
   updateSecret: (id: number, data: SecretInput) =>
-    api.put<{ secret: Secret }>(`/admin/secrets/${id}`, data),
+    api.put<Secret>(`/admin/secrets/${id}`, data),
   createSecret: (data: SecretInput) =>
-    api.post<{ secret: Secret }>('/admin/secrets', data),
+    api.post<Secret>('/admin/secrets', data),
   deleteSecret: (id: number) => api.delete(`/admin/secrets/${id}`),
 }
