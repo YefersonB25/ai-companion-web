@@ -21,6 +21,7 @@ export interface UserSetting {
   briefing_enabled: boolean
   briefing_time: string
   briefing_city: string | null
+  tts_provider: string | null
 }
 
 export interface RoutingRule {

@@ -40,4 +40,14 @@ export const connectGoogle = () =>
 
 export const disconnectGoogle = () => api.delete('/integrations/google')
 
+// ─── TTS (proveedor de voz) ──────────────────────────────────────────
+export interface TtsProvidersResponse {
+  providers: string[]
+  default: string
+  selected: string | null
+}
+
+export const getTtsProviders = () =>
+  api.get<TtsProvidersResponse>('/tts/providers')
+
 export default api

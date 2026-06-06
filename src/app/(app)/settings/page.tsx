@@ -1,7 +1,7 @@
 'use client'
 
 import { Suspense, useEffect, useState } from 'react'
-import api from '@/lib/api'
+import api, { getTtsProviders } from '@/lib/api'
 import IntegrationsSection from './IntegrationsSection'
 import { UserSetting } from '@/types'
 import { Button } from '@/components/ui/button'
@@ -9,7 +9,13 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { Sparkles, GraduationCap, Target, Palette, Truck, Settings2, Brain, Clock, Bot, CheckCircle2, Plug } from 'lucide-react'
+import { Sparkles, GraduationCap, Target, Palette, Truck, Settings2, Brain, Clock, Bot, CheckCircle2, Plug, Mic, AudioLines } from 'lucide-react'
+
+const TTS_PROVIDER_LABELS: Record<string, { label: string; desc: string }> = {
+  gemini: { label: 'Gemini', desc: 'Voz multilingüe (español/inglés)' },
+  elevenlabs: { label: 'ElevenLabs', desc: 'Voz premium' },
+  openai: { label: 'OpenAI', desc: 'Voz neuronal' },
+}
 
 const PERSONA_TEMPLATES = [
   {
@@ -120,6 +126,12 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
+  // Proveedores de voz (TTS)
+  const [ttsProviders, setTtsProviders] = useState<string[] | null>(null)
+  const [ttsDefault, setTtsDefault] = useState<string | null>(null)
+  const [ttsLoading, setTtsLoading] = useState(true)
+  const [ttsError, setTtsError] = useState(false)
+
   // Si volvemos del consentimiento de Google (?google=...), abre la pestaña Integraciones
   const [defaultTab] = useState(() => {
     if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('google')) {
@@ -130,6 +142,21 @@ export default function SettingsPage() {
 
   useEffect(() => {
     api.get('/settings').then(({ data }) => setSettings(data ?? {}))
+  }, [])
+
+  useEffect(() => {
+    getTtsProviders()
+      .then(({ data }) => {
+        setTtsProviders(data.providers ?? [])
+        setTtsDefault(data.default ?? null)
+        // Solo fija la selección si el backend la trae; si no, dejamos que el
+        // valor efectivo sea `default` sin marcar el setting como modificado.
+        if (data.selected) {
+          setSettings((s) => (s.tts_provider ? s : { ...s, tts_provider: data.selected }))
+        }
+      })
+      .catch(() => setTtsError(true))
+      .finally(() => setTtsLoading(false))
   }, [])
 
   const update = (key: keyof UserSetting, value: unknown) =>
@@ -260,18 +287,100 @@ export default function SettingsPage() {
 
               {/* Voz tab */}
               <TabsContent value="voz">
-                <Card className="border-border/60 shadow-sm">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-sm font-semibold">Voz</CardTitle>
-                    <CardDescription className="text-xs">Configuración de activación por voz, velocidad, tono y overlay</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground py-6 text-center">
-                      {/* TODO: Implementar configuración de voz (activación, velocidad, tono, overlay) */}
-                      Configuración de voz próximamente disponible.
-                    </p>
-                  </CardContent>
-                </Card>
+                <div className="space-y-5">
+                  {/* Proveedor de voz (TTS) */}
+                  <Card className="border-border/60 shadow-sm">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center gap-2">
+                        <AudioLines className="h-4 w-4 text-muted-foreground" />
+                        <CardTitle className="text-sm font-semibold">Voz de Aria</CardTitle>
+                      </div>
+                      <CardDescription className="text-xs">
+                        Elige con qué voz responde tu asistente cuando habla en voz alta
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      {ttsLoading ? (
+                        <p className="text-sm text-muted-foreground py-6 text-center">Cargando proveedores de voz…</p>
+                      ) : ttsError ? (
+                        <p className="text-sm text-amber-600 py-6 text-center">
+                          No se pudieron cargar los proveedores de voz. Inténtalo de nuevo más tarde.
+                        </p>
+                      ) : !ttsProviders || ttsProviders.length === 0 ? (
+                        <p className="text-sm text-muted-foreground py-6 text-center">
+                          No hay proveedores de voz configurados todavía.
+                        </p>
+                      ) : (
+                        (() => {
+                          const current = settings.tts_provider ?? ttsDefault ?? ttsProviders[0]
+                          return (
+                            <div className="space-y-2">
+                              {ttsProviders.length === 1 && (
+                                <p className="text-xs text-muted-foreground mb-1">
+                                  Por ahora hay un único proveedor de voz disponible.
+                                </p>
+                              )}
+                              {ttsProviders.map((provider) => {
+                                const meta = TTS_PROVIDER_LABELS[provider] ?? { label: provider, desc: '' }
+                                const isActive = current === provider
+                                return (
+                                  <button
+                                    key={provider}
+                                    type="button"
+                                    onClick={() => update('tts_provider', provider)}
+                                    className={`flex w-full items-center gap-3 rounded-xl border p-3 text-left transition-all duration-150 ${
+                                      isActive
+                                        ? 'border-indigo-500/60 bg-indigo-500/5 shadow-sm shadow-indigo-500/10'
+                                        : 'border-border/50 bg-card hover:border-indigo-500/30 hover:bg-muted/40'
+                                    }`}
+                                  >
+                                    <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors ${
+                                      isActive ? 'bg-indigo-600 text-white' : 'bg-muted text-muted-foreground'
+                                    }`}>
+                                      <Mic className="h-4 w-4" />
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                      <p className="text-sm font-medium leading-tight">
+                                        {meta.label}
+                                        {provider === ttsDefault && (
+                                          <span className="ml-2 text-[10px] font-normal text-muted-foreground uppercase tracking-wider">
+                                            por defecto
+                                          </span>
+                                        )}
+                                      </p>
+                                      {meta.desc && (
+                                        <p className="text-[11px] text-muted-foreground leading-snug mt-0.5">
+                                          {meta.desc}
+                                        </p>
+                                      )}
+                                    </div>
+                                    {isActive && (
+                                      <CheckCircle2 className="h-4 w-4 text-indigo-500 shrink-0" />
+                                    )}
+                                  </button>
+                                )
+                              })}
+                            </div>
+                          )
+                        })()
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Resto de configuración de voz (próximamente) */}
+                  <Card className="border-border/60 shadow-sm">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm font-semibold">Más opciones de voz</CardTitle>
+                      <CardDescription className="text-xs">Activación por voz, velocidad, tono y overlay</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground py-6 text-center">
+                        {/* TODO: Implementar configuración de voz (activación, velocidad, tono, overlay) */}
+                        Próximamente disponible.
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
               </TabsContent>
 
               {/* Dispositivo tab */}
