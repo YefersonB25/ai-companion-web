@@ -16,14 +16,14 @@ import { Sparkles, X, RefreshCw } from 'lucide-react'
 
 interface DashboardData {
   stats: {
-    active_users: number
+    total_users: number
     messages_today: number
-    memory_nodes: number
+    total_memory_nodes: number
     user_growth: number
   }
-  messages_per_day: Array<{ date: string; count: number }>
-  messages_per_provider: Array<{ provider: string; count: number }>
-  brain_growth: Array<{ date: string; total: number }>
+  messages_by_day: Array<{ date: string; count: number }>
+  messages_by_provider: Array<{ provider: string; count: number }>
+  memory_by_day: Array<{ date: string; count: number; cumulative: number }>
 }
 
 interface Insight {
@@ -98,12 +98,12 @@ export default function AdminDashboardPage() {
     )
   }
 
-  const messagesPerDay = (data.messages_per_day ?? []).map((d) => ({
+  const messagesPerDay = (data.messages_by_day ?? []).map((d) => ({
     ...d,
     label: formatDate(d.date),
   }))
 
-  const brainGrowth = (data.brain_growth ?? []).map((d) => ({
+  const brainGrowth = (data.memory_by_day ?? []).map((d) => ({
     ...d,
     label: formatDate(d.date),
   }))
@@ -133,7 +133,7 @@ export default function AdminDashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title="Usuarios activos"
-          value={data.stats.active_users}
+          value={data.stats.total_users}
           subtitle="Total registrados"
           icon="👥"
           color="blue"
@@ -147,7 +147,7 @@ export default function AdminDashboardPage() {
         />
         <StatCard
           title="Nodos de memoria"
-          value={data.stats.memory_nodes}
+          value={data.stats.total_memory_nodes}
           subtitle="Cerebro global"
           icon="🧠"
           color="purple"
@@ -185,11 +185,11 @@ export default function AdminDashboardPage() {
         {/* Messages per provider */}
         <div className="rounded-xl border bg-card p-5">
           <h2 className="text-sm font-semibold mb-4">Mensajes por proveedor</h2>
-          {(data.messages_per_provider ?? []).length === 0 ? (
+          {(data.messages_by_provider ?? []).length === 0 ? (
             <div className="flex h-48 items-center justify-center text-muted-foreground text-xs">Sin datos</div>
           ) : (
             <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={data.messages_per_provider} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
+              <BarChart data={data.messages_by_provider} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                 <XAxis dataKey="provider" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
                 <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
@@ -221,7 +221,7 @@ export default function AdminDashboardPage() {
               <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
               <Area
                 type="monotone"
-                dataKey="total"
+                dataKey="cumulative"
                 stroke="#6366f1"
                 strokeWidth={2}
                 fill="url(#brainGradient)"
