@@ -22,4 +22,22 @@ api.interceptors.response.use(
   }
 )
 
+// ─── Integraciones (Google Calendar / Gmail) ──────────────────────────
+export interface Integration {
+  provider: string
+  account_email: string | null
+  scopes: string[] | null
+  connected: boolean
+  expired: boolean
+  connected_at: string | null
+}
+
+export const getIntegrations = () =>
+  api.get<{ integrations: Integration[] }>('/integrations')
+
+export const connectGoogle = () =>
+  api.get<{ url: string }>('/integrations/google/connect')
+
+export const disconnectGoogle = () => api.delete('/integrations/google')
+
 export default api

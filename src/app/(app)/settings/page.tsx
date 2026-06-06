@@ -1,14 +1,15 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import api from '@/lib/api'
+import IntegrationsSection from './IntegrationsSection'
 import { UserSetting } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { Sparkles, GraduationCap, Target, Palette, Truck, Settings2, Brain, Clock, Bot, CheckCircle2 } from 'lucide-react'
+import { Sparkles, GraduationCap, Target, Palette, Truck, Settings2, Brain, Clock, Bot, CheckCircle2, Plug } from 'lucide-react'
 
 const PERSONA_TEMPLATES = [
   {
@@ -119,6 +120,14 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
+  // Si volvemos del consentimiento de Google (?google=...), abre la pestaña Integraciones
+  const [defaultTab] = useState(() => {
+    if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('google')) {
+      return 'integraciones'
+    }
+    return 'general'
+  })
+
   useEffect(() => {
     api.get('/settings').then(({ data }) => setSettings(data ?? {}))
   }, [])
@@ -154,13 +163,17 @@ export default function SettingsPage() {
         <div className="mx-auto w-full max-w-2xl space-y-5">
           <form onSubmit={handleSave} className="space-y-5">
 
-            <Tabs defaultValue="general">
-              <TabsList className="grid w-full grid-cols-5 mb-6">
+            <Tabs defaultValue={defaultTab}>
+              <TabsList className="grid w-full grid-cols-6 mb-6">
                 <TabsTrigger value="general">General</TabsTrigger>
                 <TabsTrigger value="voz">Voz</TabsTrigger>
                 <TabsTrigger value="dispositivo">Dispositivo</TabsTrigger>
                 <TabsTrigger value="briefing">Briefing</TabsTrigger>
                 <TabsTrigger value="asistente">Asistente</TabsTrigger>
+                <TabsTrigger value="integraciones">
+                  <Plug className="h-3.5 w-3.5 sm:mr-1" />
+                  <span className="hidden sm:inline">Integraciones</span>
+                </TabsTrigger>
               </TabsList>
 
               {/* General tab — Idioma, zona horaria y comportamiento */}
@@ -405,6 +418,13 @@ export default function SettingsPage() {
                     </div>
                   </CardContent>
                 </Card>
+              </TabsContent>
+
+              {/* Integraciones tab — Cuentas conectadas (Google Calendar + Gmail) */}
+              <TabsContent value="integraciones">
+                <Suspense fallback={null}>
+                  <IntegrationsSection />
+                </Suspense>
               </TabsContent>
             </Tabs>
 
