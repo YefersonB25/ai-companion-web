@@ -1,26 +1,40 @@
-import axios from 'axios'
+import { createApiClient } from '@aria/core'
 
-const api = axios.create({
+// Base client for stores
+export const apiClient = createApiClient({
   baseURL: process.env.NEXT_PUBLIC_API_URL ?? 'http://ai-companion.test/api',
-  headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+  getToken: async () => localStorage.getItem('token'),
+  setToken: async (token) => localStorage.setItem('token', token),
+  timeout: 30000,
 })
 
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token')
-  if (token) config.headers.Authorization = `Bearer ${token}`
-  return config
-})
+// Wrapper for pages that expect { data: T } format
+export const api = {
+  async get<T = any>(path: string, config?: any) {
+    const data = await apiClient.get<T>(path, config)
+    return { data }
+  },
+  async post<T = any>(path: string, body?: any, config?: any) {
+    const data = await apiClient.post<T>(path, body, config)
+    return { data }
+  },
+  async put<T = any>(path: string, body?: any, config?: any) {
+    const data = await apiClient.put<T>(path, body, config)
+    return { data }
+  },
+  async patch<T = any>(path: string, body?: any, config?: any) {
+    const data = await apiClient.patch<T>(path, body, config)
+    return { data }
+  },
+  async delete<T = any>(path: string, config?: any) {
+    const data = await apiClient.delete<T>(path, config)
+    return { data }
+  },
+  stream: apiClient.stream.bind(apiClient),
+  getStreamUrl: apiClient.getStreamUrl.bind(apiClient),
+}
 
-api.interceptors.response.use(
-  (res) => res,
-  (err) => {
-    if (err.response?.status === 401) {
-      localStorage.removeItem('token')
-      window.location.href = '/login'
-    }
-    return Promise.reject(err)
-  }
-)
+export default api
 
 // ─── Integraciones (Google Calendar / Gmail) ──────────────────────────
 export interface Integration {
@@ -49,5 +63,3 @@ export interface TtsProvidersResponse {
 
 export const getTtsProviders = () =>
   api.get<TtsProvidersResponse>('/tts/providers')
-
-export default api
