@@ -3,29 +3,46 @@
 import * as React from 'react'
 import { cn } from '@/lib/utils'
 
+interface CollapsibleContextType {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}
+
+const CollapsibleContext = React.createContext<CollapsibleContextType | undefined>(undefined)
+
+const useCollapsible = () => {
+  const context = React.useContext(CollapsibleContext)
+  if (!context) {
+    throw new Error('useCollapsible must be used within a Collapsible component')
+  }
+  return context
+}
+
 interface CollapsibleProps extends React.HTMLAttributes<HTMLDivElement> {
   open?: boolean
   onOpenChange?: (open: boolean) => void
+  defaultOpen?: boolean
 }
 
 const Collapsible = React.forwardRef<HTMLDivElement, CollapsibleProps>(
-  ({ open = false, onOpenChange, className, children, ...props }, ref) => {
-    const [isOpen, setIsOpen] = React.useState(open)
+  ({ open: controlledOpen, onOpenChange, defaultOpen = false, className, children, ...props }, ref) => {
+    const [uncontrolledOpen, setUncontrolledOpen] = React.useState(defaultOpen)
+    const isControlled = controlledOpen !== undefined
+    const isOpen = isControlled ? controlledOpen : uncontrolledOpen
 
     const handleOpenChange = (newOpen: boolean) => {
-      setIsOpen(newOpen)
+      if (!isControlled) {
+        setUncontrolledOpen(newOpen)
+      }
       onOpenChange?.(newOpen)
     }
 
     return (
-      <div ref={ref} className={cn('w-full', className)} data-state={isOpen ? 'open' : 'closed'} {...props}>
-        {React.Children.map(children, (child) => {
-          if (React.isValidElement(child)) {
-            return React.cloneElement(child, { isOpen, onOpenChange: handleOpenChange } as any)
-          }
-          return child
-        })}
-      </div>
+      <CollapsibleContext.Provider value={{ open: isOpen, onOpenChange: handleOpenChange }}>
+        <div ref={ref} className={cn('w-full', className)} data-state={isOpen ? 'open' : 'closed'} {...props}>
+          {children}
+        </div>
+      </CollapsibleContext.Provider>
     )
   }
 )
@@ -33,8 +50,10 @@ Collapsible.displayName = 'Collapsible'
 
 const CollapsibleTrigger = React.forwardRef<
   HTMLButtonElement,
-  React.ButtonHTMLAttributes<HTMLButtonElement> & { isOpen?: boolean; onOpenChange?: (open: boolean) => void }
->(({ className, onClick, isOpen = false, onOpenChange, ...props }, ref) => {
+  React.ButtonHTMLAttributes<HTMLButtonElement>
+>(({ className, onClick, ...props }, ref) => {
+  const { open, onOpenChange } = useCollapsible()
+
   return (
     <button
       ref={ref}
@@ -42,9 +61,9 @@ const CollapsibleTrigger = React.forwardRef<
       className={cn('w-full', className)}
       onClick={(e) => {
         onClick?.(e)
-        onOpenChange?.(!isOpen)
+        onOpenChange(!open)
       }}
-      data-state={isOpen ? 'open' : 'closed'}
+      data-state={open ? 'open' : 'closed'}
       {...props}
     />
   )
@@ -53,13 +72,15 @@ CollapsibleTrigger.displayName = 'CollapsibleTrigger'
 
 const CollapsibleContent = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & { isOpen?: boolean }
->(({ className, isOpen = false, ...props }, ref) => {
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => {
+  const { open } = useCollapsible()
+
   return (
     <div
       ref={ref}
-      className={cn('overflow-hidden transition-all', isOpen ? 'block' : 'hidden', className)}
-      data-state={isOpen ? 'open' : 'closed'}
+      className={cn('overflow-hidden transition-all', open ? 'block' : 'hidden', className)}
+      data-state={open ? 'open' : 'closed'}
       {...props}
     />
   )
