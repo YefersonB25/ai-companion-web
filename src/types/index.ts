@@ -128,3 +128,16 @@ export interface LicenseSummary {
   pending_requests: number
   expiring_week: number
 }
+
+// ─── Admin Memory ──────────────────────────────────
+
+export interface GlobalMemoryData {
+  total_nodes: number
+  total_users_with_memory: number
+  avg_nodes_per_user: number
+  growth_rate_week?: number
+  growth_rate_month?: number
+  growth_by_day: Array<{ date: string; count: number; cumulative: number }>
+  by_type: Record<string, number>
+  top_labels: Array<{ label: string; count: number }>
+}
