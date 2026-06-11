@@ -19,16 +19,16 @@ const colorMap = {
 export default function StatCard({ title, value, subtitle, icon, trend, color = 'blue' }: StatCardProps) {
   const c = colorMap[color]
   return (
-    <div className={`rounded-xl border ${c.border} ${c.bg} p-5 flex flex-col gap-2`}>
+    <div className={`rounded-xl border ${c.border} ${c.bg} p-6 flex flex-col gap-3 transition-all hover:shadow-lg hover:border-opacity-100 cursor-default`}>
       <div className="flex items-center justify-between">
-        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{title}</span>
-        {icon && <span className="text-xl">{icon}</span>}
+        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">{title}</span>
+        {icon && <span className="text-2xl">{icon}</span>}
       </div>
-      <div className={`text-2xl font-bold ${c.text}`}>{value}</div>
-      <div className="flex items-center gap-2">
+      <div className={`text-3xl font-bold tracking-tight ${c.text}`}>{value}</div>
+      <div className="flex items-center gap-2 pt-1">
         {subtitle && <span className="text-xs text-muted-foreground">{subtitle}</span>}
         {trend !== undefined && (
-          <span className={`text-xs font-medium ${trend >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+          <span className={`text-xs font-semibold ${trend >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'}`}>
             {trend >= 0 ? '↑' : '↓'} {Math.abs(trend)}%
           </span>
         )}

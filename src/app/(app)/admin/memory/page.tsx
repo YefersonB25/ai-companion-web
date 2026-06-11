@@ -127,8 +127,8 @@ export default function AdminMemoryPage() {
         {growthChart.length === 0 ? (
           <div className="flex h-48 items-center justify-center text-muted-foreground text-xs">Sin datos disponibles</div>
         ) : (
-          <ResponsiveContainer width="100%" height={260}>
-            <AreaChart data={growthChart} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
+          <ResponsiveContainer width="100%" height={280}>
+            <AreaChart data={growthChart} margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
               <defs>
                 <linearGradient id="globalBrainGrad" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#6366f1" stopOpacity={0.5} />
@@ -167,8 +167,8 @@ export default function AdminMemoryPage() {
           {byTypeArray.length === 0 ? (
             <div className="flex h-48 items-center justify-center text-muted-foreground text-xs">Sin datos</div>
           ) : (
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={byTypeArray} layout="vertical" margin={{ top: 4, right: 8, left: 20, bottom: 0 }}>
+            <ResponsiveContainer width="100%" height={240}>
+              <BarChart data={byTypeArray} layout="vertical" margin={{ top: 8, right: 16, left: 80, bottom: 8 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
                 <XAxis type="number" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
                 <YAxis dataKey="type" type="category" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} width={70} />
@@ -191,16 +191,15 @@ export default function AdminMemoryPage() {
           ) : (
             <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto">
               {data.top_labels.map((item, i) => {
-                const opacity = Math.max(0.5, 1 - i * 0.04)
+                const colors = ['bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-200', 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200', 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-200', 'bg-cyan-100 dark:bg-cyan-900 text-cyan-700 dark:text-cyan-200']
+                const colorClass = colors[i % colors.length]
                 return (
                   <Badge
                     key={i}
-                    variant="secondary"
-                    className="text-xs px-2.5 py-1 cursor-default"
-                    style={{ opacity }}
+                    className={`text-xs px-3 py-1.5 cursor-default font-medium ${colorClass} hover:shadow-md transition-shadow`}
                   >
                     {item.label}
-                    <span className="ml-1.5 text-muted-foreground">{item.count}</span>
+                    <span className="ml-1.5 font-bold opacity-75">{item.count}</span>
                   </Badge>
                 )
               })}
@@ -245,36 +244,36 @@ export default function AdminMemoryPage() {
           <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b bg-muted/30">
-                <th className="text-left px-5 py-3 font-medium text-muted-foreground">#</th>
-                <th className="text-left px-4 py-3 font-medium text-muted-foreground">Usuario</th>
-                <th className="text-right px-4 py-3 font-medium text-muted-foreground">Nodos</th>
-                <th className="px-4 py-3 font-medium text-muted-foreground w-48">Brain Score</th>
-                <th className="px-4 py-3"></th>
+              <tr className="border-b bg-muted/50">
+                <th className="text-left px-5 py-4 font-semibold text-muted-foreground text-xs uppercase tracking-wider">#</th>
+                <th className="text-left px-4 py-4 font-semibold text-muted-foreground text-xs uppercase tracking-wider">Usuario</th>
+                <th className="text-right px-4 py-4 font-semibold text-muted-foreground text-xs uppercase tracking-wider">Nodos</th>
+                <th className="text-center px-4 py-4 font-semibold text-muted-foreground text-xs uppercase tracking-wider">Score</th>
+                <th className="px-4 py-4"></th>
               </tr>
             </thead>
             <tbody>
               {users.length === 0 && (
-                <tr><td colSpan={5} className="px-5 py-8 text-center text-muted-foreground text-sm">Sin usuarios registrados</td></tr>
+                <tr><td colSpan={5} className="px-5 py-12 text-center text-muted-foreground text-sm">Sin usuarios registrados</td></tr>
               )}
               {users.sort((a, b) => b.memory_nodes_count - a.memory_nodes_count).map((u, i) => (
-                <tr key={u.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
-                  <td className="px-5 py-3 text-muted-foreground text-xs font-mono">{i + 1}</td>
-                  <td className="px-4 py-3">
+                <tr key={u.id} className="border-b last:border-0 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/20 transition-colors duration-150">
+                  <td className="px-5 py-4 text-muted-foreground text-xs font-mono font-medium">{i + 1}</td>
+                  <td className="px-4 py-4">
                     <div>
-                      <p className="font-medium">{u.name}</p>
-                      <p className="text-xs text-muted-foreground">{u.email}</p>
+                      <p className="font-semibold text-foreground">{u.name}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{u.email}</p>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-right font-mono text-xs font-semibold text-indigo-600 dark:text-indigo-400">
-                    {u.memory_nodes_count}
+                  <td className="px-4 py-4 text-right">
+                    <span className="font-mono text-sm font-bold text-indigo-600 dark:text-indigo-400">{u.memory_nodes_count}</span>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-4 flex justify-center">
                     <BrainScore score={u.brain_score} size="sm" />
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-4">
                     <Link href={`/admin/users/${u.id}`}>
-                      <Badge variant="outline" className="text-xs cursor-pointer hover:bg-indigo-50 dark:hover:bg-indigo-950 hover:border-indigo-300">
+                      <Badge variant="outline" className="text-xs cursor-pointer hover:bg-indigo-100 dark:hover:bg-indigo-900 hover:border-indigo-400 transition-colors">
                         Ver
                       </Badge>
                     </Link>
