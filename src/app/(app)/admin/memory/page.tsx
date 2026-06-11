@@ -94,49 +94,36 @@ export default function AdminMemoryPage() {
   const growthRate   = data.growth_rate_week ?? 0
 
   return (
-    <div className="flex flex-col gap-6 p-6 max-w-7xl w-full mx-auto">
+    <div className="flex flex-col gap-8 p-6 max-w-7xl w-full mx-auto">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+      <div className="border-b border-border pb-6">
+        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3 mb-2">
           <span>🧠</span> Cerebro Global
         </h1>
-        <p className="text-sm text-muted-foreground mt-0.5">Memoria acumulada de todos los usuarios</p>
+        <p className="text-sm text-muted-foreground">Memoria acumulada y estadísticas de todos los usuarios</p>
       </div>
 
-      {/* Neural Brain Graph — Global */}
-      <div className="rounded-xl border border-indigo-500/20 overflow-hidden">
-        <div className="px-4 py-3 border-b border-indigo-500/20 bg-slate-950/50">
-          <h2 className="text-sm font-semibold text-indigo-300">Red Neural Global — {totalNodes} nodos</h2>
-          <p className="text-xs text-slate-500 mt-0.5">Visualización en tiempo real del conocimiento colectivo acumulado</p>
+      {/* Stats - Moved to top for better hierarchy */}
+      <div>
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Resumen</h2>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard title="Total nodos"         value={totalNodes.toLocaleString()} icon="🧩" color="purple" />
+          <StatCard title="Usuarios con memoria" value={usersWithMem}                icon="👤" color="blue" />
+          <StatCard title="Promedio por usuario" value={avgPerUser.toFixed(1)}       icon="📊" color="green" />
+          <StatCard
+            title="Crecimiento semanal"
+            value={`${growthRate >= 0 ? '+' : ''}${growthRate}`}
+            icon="📈" trend={growthRate} color="orange"
+          />
         </div>
-        <NeuralBrainGraph
-          nodes={(data.top_labels ?? []).slice(0, 40).map((item, i) => ({
-            id: i + 1,
-            type: byTypeArray[i % Math.max(byTypeArray.length, 1)]?.type ?? 'default',
-            label: item.label,
-            importance: Math.min(1, item.count / 5),
-            parent_id: i > 0 && i % 4 === 0 ? i - 1 : null,
-          }))}
-          width={900} height={480}
-        />
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Total nodos"         value={totalNodes.toLocaleString()} icon="🧩" color="purple" />
-        <StatCard title="Usuarios con memoria" value={usersWithMem}                icon="👤" color="blue" />
-        <StatCard title="Promedio por usuario" value={avgPerUser.toFixed(1)}       icon="📊" color="green" />
-        <StatCard
-          title="Crecimiento semanal"
-          value={`${growthRate >= 0 ? '+' : ''}${growthRate}`}
-          icon="📈" trend={growthRate} color="orange"
-        />
-      </div>
-
-      {/* Main growth chart */}
-      <div className="rounded-xl border bg-gradient-to-br from-indigo-50/60 to-violet-50/30 dark:from-indigo-950/40 dark:to-violet-950/20 border-indigo-200 dark:border-indigo-900 p-6">
-        <h2 className="text-sm font-semibold mb-1 text-indigo-700 dark:text-indigo-300">Crecimiento acumulativo del cerebro global</h2>
-        <p className="text-xs text-muted-foreground mb-5">Total de nodos de memoria a lo largo del tiempo</p>
+      {/* Insights Section */}
+      <div>
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Tendencias</h2>
+        <div className="rounded-xl border bg-gradient-to-br from-indigo-50/60 to-violet-50/30 dark:from-indigo-950/40 dark:to-violet-950/20 border-indigo-200 dark:border-indigo-900 p-6">
+          <h3 className="text-sm font-semibold mb-1 text-indigo-700 dark:text-indigo-300">Crecimiento acumulativo</h3>
+          <p className="text-xs text-muted-foreground mb-5">Total de nodos de memoria a lo largo del tiempo</p>
         {growthChart.length === 0 ? (
           <div className="flex h-48 items-center justify-center text-muted-foreground text-xs">Sin datos disponibles</div>
         ) : (
@@ -167,13 +154,16 @@ export default function AdminMemoryPage() {
             </AreaChart>
           </ResponsiveContainer>
         )}
+        </div>
       </div>
 
-      {/* Type distribution + top labels */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* By type horizontal bar */}
-        <div className="rounded-xl border bg-card p-5">
-          <h2 className="text-sm font-semibold mb-4">Distribución por tipo</h2>
+      {/* Analysis Section */}
+      <div>
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Análisis</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* By type horizontal bar */}
+          <div className="rounded-xl border bg-card p-5 hover:border-indigo-500/50 transition-colors">
+            <h3 className="text-sm font-semibold mb-4">Distribución por tipo</h3>
           {byTypeArray.length === 0 ? (
             <div className="flex h-48 items-center justify-center text-muted-foreground text-xs">Sin datos</div>
           ) : (
@@ -191,11 +181,11 @@ export default function AdminMemoryPage() {
               </BarChart>
             </ResponsiveContainer>
           )}
-        </div>
+          </div>
 
-        {/* Top labels */}
-        <div className="rounded-xl border bg-card p-5">
-          <h2 className="text-sm font-semibold mb-4">Etiquetas más comunes</h2>
+          {/* Top labels */}
+          <div className="rounded-xl border bg-card p-5 hover:border-indigo-500/50 transition-colors">
+            <h3 className="text-sm font-semibold mb-4">Etiquetas más comunes</h3>
           {(data.top_labels ?? []).length === 0 ? (
             <div className="flex h-48 items-center justify-center text-muted-foreground text-xs">Sin etiquetas</div>
           ) : (
@@ -216,19 +206,43 @@ export default function AdminMemoryPage() {
               })}
             </div>
           )}
+          </div>
         </div>
       </div>
 
-      {/* Users ranked by brain size */}
-      <div className="rounded-xl border bg-card overflow-hidden">
-        <div className="px-5 py-4 border-b flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <h2 className="text-sm font-semibold">Usuarios por tamaño de cerebro</h2>
-            <span className="text-xs text-muted-foreground">{users.length} usuarios</span>
+      {/* Neural Section */}
+      <div>
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Red Neural</h2>
+        <div className="rounded-xl border border-indigo-500/20 overflow-hidden hover:border-indigo-500/50 transition-colors">
+          <div className="px-4 py-3 border-b border-indigo-500/20 bg-slate-950/50">
+            <h3 className="text-sm font-semibold text-indigo-300">Visualización global — {totalNodes} nodos</h3>
+            <p className="text-xs text-slate-500 mt-0.5">Conocimiento colectivo acumulado</p>
           </div>
-          <Link href="/admin/users" className="text-xs text-indigo-500 hover:underline">Ver todos los usuarios →</Link>
+          <NeuralBrainGraph
+            nodes={(data.top_labels ?? []).slice(0, 40).map((item, i) => ({
+              id: i + 1,
+              type: byTypeArray[i % Math.max(byTypeArray.length, 1)]?.type ?? 'default',
+              label: item.label,
+              importance: Math.min(1, item.count / 5),
+              parent_id: i > 0 && i % 4 === 0 ? i - 1 : null,
+            }))}
+            width={900} height={480}
+          />
         </div>
-        <div className="overflow-x-auto">
+      </div>
+
+      {/* Users Section */}
+      <div>
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Usuarios</h2>
+        <div className="rounded-xl border bg-card overflow-hidden">
+          <div className="px-5 py-4 border-b flex items-center justify-between bg-muted/30">
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-semibold">Ranking por tamaño de cerebro</h3>
+              <span className="text-xs text-muted-foreground">{users.length} usuarios</span>
+            </div>
+            <Link href="/admin/users" className="text-xs text-indigo-500 hover:underline">Ver todos →</Link>
+          </div>
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b bg-muted/30">
@@ -268,7 +282,8 @@ export default function AdminMemoryPage() {
                 </tr>
               ))}
             </tbody>
-          </table>
+            </table>
+          </div>
         </div>
       </div>
     </div>
