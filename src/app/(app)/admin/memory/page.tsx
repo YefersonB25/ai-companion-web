@@ -96,32 +96,40 @@ export default function AdminMemoryPage() {
   return (
     <div className="flex flex-col gap-8 p-6 max-w-7xl w-full mx-auto">
       {/* Header */}
-      <div className="border-b border-border pb-6">
+      <div className="border-b border-border pb-6 animate-in fade-in slide-in-from-top-4 duration-500">
         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3 mb-2">
-          <span>🧠</span> Cerebro Global
+          <span className="text-4xl">🧠</span> Cerebro Global
         </h1>
         <p className="text-sm text-muted-foreground">Memoria acumulada y estadísticas de todos los usuarios</p>
       </div>
 
       {/* Stats - Moved to top for better hierarchy */}
-      <div>
+      <div className="animate-in fade-in slide-in-from-top-4 duration-500 delay-100">
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Resumen</h2>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard title="Total nodos"         value={totalNodes.toLocaleString()} icon="🧩" color="purple" />
-          <StatCard title="Usuarios con memoria" value={usersWithMem}                icon="👤" color="blue" />
-          <StatCard title="Promedio por usuario" value={avgPerUser.toFixed(1)}       icon="📊" color="green" />
-          <StatCard
-            title="Crecimiento semanal"
-            value={`${growthRate >= 0 ? '+' : ''}${growthRate}`}
-            icon="📈" trend={growthRate} color="orange"
-          />
+          <div className="animate-in fade-in slide-in-from-left-4 duration-500 delay-200">
+            <StatCard title="Total nodos" value={totalNodes.toLocaleString()} icon="🧩" color="purple" />
+          </div>
+          <div className="animate-in fade-in slide-in-from-left-4 duration-500 delay-300">
+            <StatCard title="Usuarios con memoria" value={usersWithMem} icon="👤" color="blue" />
+          </div>
+          <div className="animate-in fade-in slide-in-from-left-4 duration-500 delay-400">
+            <StatCard title="Promedio por usuario" value={avgPerUser.toFixed(1)} icon="📊" color="green" />
+          </div>
+          <div className="animate-in fade-in slide-in-from-left-4 duration-500 delay-500">
+            <StatCard
+              title="Crecimiento semanal"
+              value={`${growthRate >= 0 ? '+' : ''}${growthRate}`}
+              icon="📈" trend={growthRate} color="orange"
+            />
+          </div>
         </div>
       </div>
 
       {/* Insights Section */}
-      <div>
+      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300">
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Tendencias</h2>
-        <div className="rounded-xl border bg-gradient-to-br from-indigo-50/60 to-violet-50/30 dark:from-indigo-950/40 dark:to-violet-950/20 border-indigo-200 dark:border-indigo-900 p-6">
+        <div className="rounded-xl border bg-gradient-to-br from-indigo-50/60 to-violet-50/30 dark:from-indigo-950/40 dark:to-violet-950/20 border-indigo-200 dark:border-indigo-900 p-6 hover:shadow-lg transition-all duration-300">
           <h3 className="text-sm font-semibold mb-1 text-indigo-700 dark:text-indigo-300">Crecimiento acumulativo</h3>
           <p className="text-xs text-muted-foreground mb-5">Total de nodos de memoria a lo largo del tiempo</p>
         {growthChart.length === 0 ? (
@@ -158,7 +166,7 @@ export default function AdminMemoryPage() {
       </div>
 
       {/* Analysis Section */}
-      <div>
+      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-400">
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Análisis</h2>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* By type horizontal bar */}
@@ -210,12 +218,12 @@ export default function AdminMemoryPage() {
       </div>
 
       {/* Neural Section */}
-      <div>
+      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-700">
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Red Neural</h2>
-        <div className="rounded-xl border border-indigo-500/20 overflow-hidden hover:border-indigo-500/50 transition-colors">
-          <div className="px-4 py-3 border-b border-indigo-500/20 bg-slate-950/50">
+        <div className="rounded-xl border border-indigo-500/30 overflow-hidden hover:border-indigo-500/60 hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-slate-900/50 to-slate-950/80">
+          <div className="px-4 py-4 border-b border-indigo-500/20 bg-gradient-to-r from-indigo-950/40 to-slate-950/50">
             <h3 className="text-sm font-semibold text-indigo-300">Visualización global — {totalNodes} nodos</h3>
-            <p className="text-xs text-slate-500 mt-0.5">Conocimiento colectivo acumulado</p>
+            <p className="text-xs text-indigo-500/60 mt-1">Conexiones de conocimiento colectivo</p>
           </div>
           <NeuralBrainGraph
             nodes={(data.top_labels ?? []).slice(0, 40).map((item, i) => ({
@@ -231,9 +239,9 @@ export default function AdminMemoryPage() {
       </div>
 
       {/* Users Section */}
-      <div>
+      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-600">
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Usuarios</h2>
-        <div className="rounded-xl border bg-card overflow-hidden">
+        <div className="rounded-xl border bg-card overflow-hidden hover:shadow-lg transition-all duration-300">
           <div className="px-5 py-4 border-b flex items-center justify-between bg-muted/30">
             <div className="flex items-center gap-2">
               <h3 className="text-sm font-semibold">Ranking por tamaño de cerebro</h3>
@@ -283,6 +291,32 @@ export default function AdminMemoryPage() {
             </tbody>
             </table>
           </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="animate-in fade-in duration-500 delay-1000 border-t border-border pt-6 mt-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="rounded-lg bg-muted/40 p-4">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Capacidad</p>
+            <p className="text-2xl font-bold text-foreground">{totalNodes.toLocaleString()}</p>
+            <p className="text-xs text-muted-foreground mt-1">nodos de memoria acumulados</p>
+          </div>
+          <div className="rounded-lg bg-muted/40 p-4">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Participación</p>
+            <p className="text-2xl font-bold text-foreground">{usersWithMem}</p>
+            <p className="text-xs text-muted-foreground mt-1">usuarios activos</p>
+          </div>
+          <div className="rounded-lg bg-muted/40 p-4">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Tendencia</p>
+            <p className={`text-2xl font-bold ${growthRate >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
+              {growthRate >= 0 ? '↑' : '↓'} {Math.abs(growthRate)}%
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">crecimiento semanal</p>
+          </div>
+        </div>
+        <div className="mt-6 pt-4 border-t border-border/50 text-center">
+          <p className="text-xs text-muted-foreground">Cerebro Global • Sistema de Memoria Distribuida</p>
         </div>
       </div>
     </div>
